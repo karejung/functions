@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import React from 'react'
-import { useGLTF, useTexture } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
+import { useLoader } from '@react-three/fiber'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
 type ModelProps = React.JSX.IntrinsicElements['group'] & {
   emissiveIntensity?: number
@@ -8,7 +10,7 @@ type ModelProps = React.JSX.IntrinsicElements['group'] & {
 
 export function Model({ emissiveIntensity = 0, ...props }: ModelProps) {
   const { scene } = useGLTF('/gltf/test.gltf')
-  const lightMap = useTexture('/gltf/texture/lightmap2.webp')
+  const lightMap = useLoader(RGBELoader, '/gltf/texture/lightmap.hdr')
   
   lightMap.flipY = false
   lightMap.colorSpace = THREE.NoColorSpace // Non-color data (lightmap)
@@ -29,7 +31,7 @@ export function Model({ emissiveIntensity = 0, ...props }: ModelProps) {
         if ((mat as any).isMeshStandardMaterial) {
           const m = mat as THREE.MeshStandardMaterial
           m.lightMap = lightMap
-          m.lightMapIntensity = 10.0
+          m.lightMapIntensity = 1.0
           m.emissiveIntensity = emissiveIntensity // emissive 강도 조절 (기본값: 1)
         }
       }
@@ -42,4 +44,4 @@ export function Model({ emissiveIntensity = 0, ...props }: ModelProps) {
 }
 
 useGLTF.preload('/gltf/test.gltf')
-useTexture.preload('/gltf/texture/lightmap2.webp')
+useLoader.preload(RGBELoader, '/gltf/texture/lightmap.hdr')
