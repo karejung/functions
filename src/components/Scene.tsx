@@ -11,7 +11,13 @@ export default function Scene() {
   return (
     <div className="w-screen h-screen">
       <Canvas 
-        camera={{ position: [20, 20, 20], fov: 10 }}
+        camera={{ 
+          position: [200, 150, -200], 
+          fov: 1,
+          zoom: 1,
+          near: 100,
+          far: 10000
+        }}
         gl={{ 
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1
