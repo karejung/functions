@@ -1,11 +1,13 @@
-import * as THREE from 'three'
-import React, { useRef } from 'react'
+import * as THREE from 'three/webgpu'
+import { texture, uniform, mix } from 'three/tsl'
+import React, { useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
-import { useControls } from 'leva'
 
-type ModelProps = React.JSX.IntrinsicElements['group']
+type ModelProps = React.JSX.IntrinsicElements['group'] & {
+  nightMix: number
+}
 
-export function Model(props: ModelProps) {
+export function Model({ nightMix, ...props }: ModelProps) {
   const { scene } = useGLTF('/gltf/test.gltf')
   
   // 2개의 Baked 텍스처 로드 (Day & Night)
@@ -14,19 +16,29 @@ export function Model(props: ModelProps) {
     '/gltf/texture/retopoBed_Baked2.webp'
   ])
   
-  // Leva 디버그 UI - Night Mix 슬라이더만
-  const { uNightMix } = useControls('Baked Material', {
-    uNightMix: { value: 0, min: 0, max: 1, step: 0.01, label: 'Night Mix' }
-  })
-  
-  const materialsRef = useRef<THREE.MeshStandardMaterial[]>([])
-  
   // 텍스처 설정
   bakedTexture1.flipY = false
   bakedTexture1.colorSpace = THREE.SRGBColorSpace
   
   bakedTexture2.flipY = false
   bakedTexture2.colorSpace = THREE.SRGBColorSpace
+
+  // TSL uniform 생성 (메모이제이션)
+  const nightMixUniform = useMemo(() => uniform(nightMix), [])
+  
+  // nightMix 값 업데이트
+  React.useEffect(() => {
+    nightMixUniform.value = nightMix
+  }, [nightMix, nightMixUniform])
+
+  // TSL 노드로 Day/Night 블렌딩 구현
+  const bakedTextureNode1 = useMemo(() => texture(bakedTexture1), [bakedTexture1])
+  const bakedTextureNode2 = useMemo(() => texture(bakedTexture2), [bakedTexture2])
+  
+  const blendedColorNode = useMemo(
+    () => mix(bakedTextureNode1, bakedTextureNode2, nightMixUniform),
+    [bakedTextureNode1, bakedTextureNode2, nightMixUniform]
+  )
 
   scene.traverse((o) => {
     if ((o as any).isMesh) {
@@ -41,86 +53,34 @@ export function Model(props: ModelProps) {
         g.setAttribute('uv2', new THREE.BufferAttribute(g.getAttribute('uv').array, 2))
       }
 
-      const mat = mesh.material as THREE.MeshStandardMaterial
-      
-      // MeshStandardMaterial의 onBeforeCompile로 커스터마이징
-      if ((mat as any).isMeshStandardMaterial && !mat.userData.customized) {
-        mat.userData.customized = true
+      // 기존 Material을 TSL 기반 MeshStandardNodeMaterial로 교체
+      if (!mesh.userData.tslMaterialApplied) {
+        mesh.userData.tslMaterialApplied = true
         
-        // baseColor와 emissive에 Day/Night 블렌딩 적용
-        mat.onBeforeCompile = (shader) => {
-          // Uniforms 추가
-          shader.uniforms.uBakedTexture1 = { value: bakedTexture1 }
-          shader.uniforms.uBakedTexture2 = { value: bakedTexture2 }
-          shader.uniforms.uNightMix = { value: uNightMix }
-          
-          // Vertex Shader에 varying 추가
-          shader.vertexShader = shader.vertexShader.replace(
-            '#include <common>',
-            `#include <common>
-            varying vec2 vUv;`
-          )
-          
-          shader.vertexShader = shader.vertexShader.replace(
-            '#include <uv_vertex>',
-            `#include <uv_vertex>
-            vUv = uv;`
-          )
-          
-          // Fragment Shader 수정
-          shader.fragmentShader = shader.fragmentShader.replace(
-            '#include <common>',
-            `#include <common>
-            uniform sampler2D uBakedTexture1;
-            uniform sampler2D uBakedTexture2;
-            uniform float uNightMix;
-            varying vec2 vUv;
-            
-            vec3 sRGBToLinear(vec3 srgb) {
-              return pow(srgb, vec3(2.2));
-            }`
-          )
-          
-          // map (baseColor) 교체
-          shader.fragmentShader = shader.fragmentShader.replace(
-            '#include <map_fragment>',
-            `#ifdef USE_MAP
-              vec3 bakedTexture1 = texture2D(uBakedTexture1, vUv).rgb;
-              vec3 bakedTexture2 = texture2D(uBakedTexture2, vUv).rgb;
-              vec3 blendedColor = mix(bakedTexture1, bakedTexture2, uNightMix);
-              vec4 sampledDiffuseColor = vec4(blendedColor, 1.0);
-              diffuseColor *= sampledDiffuseColor;
-            #endif`
-          )
-          
-          // emissive 교체
-          shader.fragmentShader = shader.fragmentShader.replace(
-            '#include <emissivemap_fragment>',
-            `#ifdef USE_EMISSIVEMAP
-              vec3 bakedTexture1_e = texture2D(uBakedTexture1, vUv).rgb;
-              vec3 bakedTexture2_e = texture2D(uBakedTexture2, vUv).rgb;
-              vec3 blendedEmissive = mix(bakedTexture1_e, bakedTexture2_e, uNightMix);
-              vec4 emissiveColor = vec4(blendedEmissive, 1.0);
-              totalEmissiveRadiance *= emissiveColor.rgb;
-            #endif`
-          )
-          
-          mat.userData.shader = shader
+        const nodeMaterial = new THREE.MeshStandardNodeMaterial()
+        
+        // baseColor는 검은색 (emissive만 보이도록)
+        nodeMaterial.color = new THREE.Color(0, 0, 0)
+        
+        // emissive에만 블렌딩된 텍스처 적용
+        nodeMaterial.emissiveNode = blendedColorNode
+        nodeMaterial.emissive = new THREE.Color(1, 1, 1) // emissive intensity
+        
+        // 기존 material 속성 복사 (필요시)
+        const oldMat = mesh.material as THREE.Material
+        nodeMaterial.side = oldMat.side
+        
+        // 기존 material dispose
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach((m: THREE.Material) => m.dispose())
+        } else {
+          mesh.material.dispose()
         }
         
-        materialsRef.current.push(mat)
+        mesh.material = nodeMaterial
       }
     }
   })
-  
-  // uNightMix 업데이트
-  React.useEffect(() => {
-    materialsRef.current.forEach(mat => {
-      if (mat.userData.shader) {
-        mat.userData.shader.uniforms.uNightMix.value = uNightMix
-      }
-    })
-  }, [uNightMix])
 
   return <primitive object={scene} {...props} />
 }

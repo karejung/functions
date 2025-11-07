@@ -39,20 +39,20 @@
 			"emissiveTexture":{
 				"index":0
 			},
-			"name":"baked.002",
+			"name":"baked.001",
 			"pbrMetallicRoughness":{
-				"baseColorTexture":{
-					"index":1
-				},
-				"metallicRoughnessTexture":{
-					"index":2
-				}
+				"baseColorFactor":[
+					0,
+					0,
+					0,
+					1
+				]
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Cube.003",
+			"name":"Cube.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -74,22 +74,6 @@
 				}
 			},
 			"sampler":0
-		},
-		{
-			"extensions":{
-				"EXT_texture_webp":{
-					"source":0
-				}
-			},
-			"sampler":0
-		},
-		{
-			"extensions":{
-				"EXT_texture_webp":{
-					"source":1
-				}
-			},
-			"sampler":0
 		}
 	],
 	"images":[
@@ -97,11 +81,6 @@
 			"mimeType":"image/webp",
 			"name":"retopoBed_Baked",
 			"uri":"texture/retopoBed_Baked.webp"
-		},
-		{
-			"mimeType":"image/webp",
-			"name":"retopoBed_Baked",
-			"uri":"texture/retopoBed_Baked-1.webp"
 		}
 	],
 	"accessors":[

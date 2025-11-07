@@ -1,142 +1,80 @@
-import { useRef, useEffect, useMemo } from 'react'
-import { extend, useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { Reflector as ThreeReflector } from 'three/examples/jsm/objects/Reflector.js'
+import { useMemo } from 'react'
+import * as THREE from 'three/webgpu'
+import { reflector, uniform } from 'three/tsl'
 
 type ReflectorProps = React.JSX.IntrinsicElements['group']
 
-// Three.js 네임스페이스에 리플렉터 추가
-extend({ ThreeReflector })
-
 export function Reflector(props: ReflectorProps) {
-  const groupRef = useRef<THREE.Group>(null)
-  const reflectorsRef = useRef<THREE.Object3D[]>([])
-
-  // scenes.ts의 첫 번째 씬 reflector 설정 참고
+  // 기존 reflector 설정 그대로 유지
   const reflectorData = useMemo(() => [
     {
       // Plane 1 - 큰 거울 (벽면)
       position: [0, 1, 1.75] as [number, number, number],
       rotation: [-Math.PI / 1, 0, 0] as [number, number, number],
       args: [1.74, 1.96],
-      color: "#a0a0a0",
-      clipBias: 0.003,
-      overlayOpacity: 0.5,
-      overlayOffset: [0, 0, -0.01] as [number, number, number]
+      intensity: 0.5
     },
     {
       // Plane 2 - 작은 거울
       position: [-1.16, 0.6, 1.64] as [number, number, number],
       rotation: [-Math.PI / 1.025, 0, 0] as [number, number, number],
       args: [.25, 1.11],
-      clipBias: 0,
-      color: "#aaaaaa",
-      overlayOpacity: 0,
-      overlayOffset: [0, 0, -0.01] as [number, number, number]
+      intensity: 0.5
     }
   ], [])
 
-  useEffect(() => {
-    if (!groupRef.current) return
-
-    // 기존 리플렉터와 오버레이 제거
-    const existingObjects = groupRef.current.children.filter(
-      child => child.userData.isReflector || child.userData.isReflectorOverlay
-    )
-    existingObjects.forEach(child => {
-      groupRef.current?.remove(child)
-      const mesh = child as THREE.Mesh
-      if (mesh.material) {
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach((m: THREE.Material) => m.dispose())
-        } else {
-          mesh.material.dispose()
-        }
-      }
-      if (mesh.geometry) mesh.geometry.dispose()
-    })
-
-    reflectorsRef.current = []
-
-    // 새로운 리플렉터 생성
-    reflectorData.forEach((item, index) => {
-      const geometry = new THREE.PlaneGeometry(item.args[0], item.args[1])
+  // 각 반사면에 대한 reflector와 material 생성
+  const reflectors = useMemo(() => {
+    return reflectorData.map((item, index) => {
+      // WebGPU reflector 생성
+      const reflection = reflector({ resolutionScale: 1 })
       
-      const resolution = 1024
-      const color = new THREE.Color(item.color)
+      // rotation을 quaternion으로 변환하여 적용
+      const euler = new THREE.Euler(item.rotation[0], item.rotation[1], item.rotation[2])
+      reflection.target.quaternion.setFromEuler(euler)
+      reflection.target.position.set(item.position[0], item.position[1], item.position[2])
       
-      const reflector = new ThreeReflector(geometry, {
-        clipBias: item.clipBias,
-        textureWidth: resolution,
-        textureHeight: resolution,
-        color: color.getHex()
-      })
-
-      reflector.position.set(item.position[0], item.position[1], item.position[2])
-      reflector.rotation.set(item.rotation[0], item.rotation[1], item.rotation[2])
-
-      reflector.userData.isReflector = true
-      reflector.castShadow = false
-      reflector.receiveShadow = false
-
-      // material 설정
-      if (reflector.material) {
-        const material = reflector.material as THREE.Material
-        material.transparent = true
-        material.opacity = 0.3
-      }
-
-      groupRef.current?.add(reflector)
-      reflectorsRef.current.push(reflector)
-
-      // 오버레이 생성 (어두운 효과)
-      if (item.overlayOpacity > 0) {
-        const overlayGeometry = geometry.clone()
-        const overlayMaterial = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: item.overlayOpacity,
-          side: THREE.FrontSide
-        })
-
-        const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
-        
-        overlay.position.set(
-          item.position[0] + item.overlayOffset[0],
-          item.position[1] + item.overlayOffset[1],
-          item.position[2] + item.overlayOffset[2]
-        )
-        overlay.rotation.set(item.rotation[0], item.rotation[1], item.rotation[2])
-
-        overlay.userData.isReflectorOverlay = true
-        overlay.castShadow = false
-        overlay.receiveShadow = false
-
-        groupRef.current?.add(overlay)
+      // intensity uniform
+      const intensityUniform = uniform(item.intensity)
+      
+      // material 생성
+      const material = new THREE.MeshStandardNodeMaterial()
+      material.color = new THREE.Color(0x222222)
+      material.transparent = true
+      material.opacity = 1 // 고정
+      material.emissiveNode = reflection.mul(intensityUniform)
+      material.roughness = 0.8
+      material.metalness = 0.1
+      
+      return {
+        reflection,
+        material,
+        position: item.position,
+        rotation: item.rotation,
+        args: item.args
       }
     })
-
-    return () => {
-      // cleanup
-    }
   }, [reflectorData])
 
-  // 프레임마다 리플렉터 업데이트
-  const frameCounterRef = useRef(0)
-  useFrame(() => {
-    if (reflectorsRef.current.length === 0) return
-    
-    // 성능을 위해 6프레임마다 업데이트
-    frameCounterRef.current = (frameCounterRef.current + 1) % 6
-    if (frameCounterRef.current !== 0) return
-    
-    reflectorsRef.current.forEach(reflector => {
-      if (reflector && (reflector as any).needsUpdate !== undefined) {
-        (reflector as any).needsUpdate = true
-      }
-    })
-  })
-
-  return <group ref={groupRef} {...props} />
+  return (
+    <group {...props}>
+      {reflectors.map((item, index) => (
+        <group key={index}>
+          {/* reflection target (보이지 않음) */}
+          <primitive object={item.reflection.target} />
+          
+          {/* 실제 반사 mesh */}
+          <mesh 
+            position={item.position} 
+            rotation={item.rotation}
+            receiveShadow
+          >
+            <planeGeometry args={[item.args[0], item.args[1]]} />
+            <primitive object={item.material} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
 }
 
