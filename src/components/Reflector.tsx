@@ -27,7 +27,7 @@ export function Reflector(props: ReflectorProps) {
   const reflectors = useMemo(() => {
     return reflectorData.map((item, index) => {
       // WebGPU reflector 생성
-      const reflection = reflector({ resolutionScale: 1 })
+      const reflection = reflector({ resolutionScale: 0.5, depth: true, bounces: false })
       
       // rotation을 quaternion으로 변환하여 적용
       const euler = new THREE.Euler(item.rotation[0], item.rotation[1], item.rotation[2])

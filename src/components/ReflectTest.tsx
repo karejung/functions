@@ -17,7 +17,7 @@ export function ReflectTest({ floorOpacity: floorOpacityProp = 0 }: ReflectTestP
   
   // reflector 생성
   const reflection = useMemo(() => {
-    const ref = reflector({ resolutionScale: 1 })
+    const ref = reflector({ resolutionScale: 0.5, depth: true, bounces: false })
     ref.target.rotateX(-Math.PI / 2)
     return ref
   }, [])
