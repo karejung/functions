@@ -21,7 +21,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"retopo",
+			"name":"retopoBed_Baked_light",
 			"translation":[
 				0.06686270236968994,
 				-0.014625309966504574,
@@ -39,7 +39,7 @@
 			"emissiveTexture":{
 				"index":0
 			},
-			"name":"baked.001",
+			"name":"retopoBed_Baked.003_Baked.004",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0,
@@ -52,15 +52,14 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.084",
+			"name":"Cube.131",
 			"primitives":[
 				{
 					"attributes":{
 						"POSITION":0,
-						"TEXCOORD_0":1,
-						"TEXCOORD_1":2
+						"TEXCOORD_0":1
 					},
-					"indices":3,
+					"indices":2,
 					"material":0
 				}
 			]
@@ -87,61 +86,49 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":24798,
+			"count":24700,
 			"max":[
 				1.68313729763031,
 				2.514625310897827,
-				1.7123554944992065
+				1.7240314483642578
 			],
 			"min":[
 				-1.81686270236969,
 				0.01458171010017395,
-				-1.2034844160079956
+				-1.1950492858886719
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":24798,
+			"count":24700,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":2,
-			"componentType":5126,
-			"count":24798,
-			"type":"VEC2"
-		},
-		{
-			"bufferView":3,
 			"componentType":5123,
-			"count":89916,
+			"count":90015,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":297576,
+			"byteLength":296400,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":198384,
-			"byteOffset":297576,
+			"byteLength":197600,
+			"byteOffset":296400,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":198384,
-			"byteOffset":495960,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":179832,
-			"byteOffset":694344,
+			"byteLength":180030,
+			"byteOffset":494000,
 			"target":34963
 		}
 	],
@@ -153,7 +140,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":874176,
+			"byteLength":674032,
 			"uri":"test.bin"
 		}
 	]
