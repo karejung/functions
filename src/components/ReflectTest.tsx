@@ -1,19 +1,18 @@
 import * as THREE from 'three/webgpu'
 import { reflector, uniform } from 'three/tsl'
-import { useControls } from 'leva'
+// import { useControls } from 'leva'
 import { useGLTF } from '@react-three/drei'
 import React, { useMemo } from 'react'
 
-type ReflectTestProps = {
-  floorOpacity?: number
-}
-
-export function ReflectTest({ floorOpacity: floorOpacityProp = 0 }: ReflectTestProps) {
+export function ReflectTest() {
   const basePath = process.env.NODE_ENV === 'production' ? '/lightmap' : ''
   const { scene: floorScene } = useGLTF(`${basePath}/gltf/texture/floormesh.glb`)
-  const { reflectionIntensity } = useControls('Reflection', {
-    reflectionIntensity: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Intensity' },
-  })
+  
+  // const { reflectionIntensity } = useControls('Reflection', {
+  //   reflectionIntensity: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Intensity' },
+  // })
+  const reflectionIntensity = 0.5
+  const floorOpacity = 0.05
   
   // reflector 생성
   const reflection = useMemo(() => {
@@ -34,12 +33,12 @@ export function ReflectTest({ floorOpacity: floorOpacityProp = 0 }: ReflectTestP
     const mat = new THREE.MeshStandardNodeMaterial()
     mat.color = new THREE.Color(0x222222) // 어두운 회색 바닥
     mat.transparent = true
-    mat.opacity = floorOpacityProp
+    mat.opacity = floorOpacity
     mat.emissiveNode = reflection.mul(intensityUniform)
     mat.roughness = 0.8
     mat.metalness = 0.1
     return mat
-  }, [reflection, intensityUniform, floorOpacityProp])
+  }, [reflection, intensityUniform, floorOpacity])
   
   // floormesh.glb에 material 적용
   React.useEffect(() => {

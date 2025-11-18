@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.2.57",
+		"generator":"Khronos glTF Blender I/O v4.4.55",
 		"version":"2.0"
 	},
 	"extensionsUsed":[
@@ -52,7 +52,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.002",
+			"name":"Cube.084",
 			"primitives":[
 				{
 					"attributes":{
@@ -87,7 +87,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":25794,
+			"count":24798,
 			"max":[
 				1.68313729763031,
 				2.514625310897827,
@@ -96,52 +96,52 @@
 			"min":[
 				-1.81686270236969,
 				0.01458171010017395,
-				-1.5034844875335693
+				-1.2034844160079956
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":25794,
+			"count":24798,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":25794,
+			"count":24798,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":94203,
+			"count":89916,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":309528,
+			"byteLength":297576,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":206352,
-			"byteOffset":309528,
+			"byteLength":198384,
+			"byteOffset":297576,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":206352,
-			"byteOffset":515880,
+			"byteLength":198384,
+			"byteOffset":495960,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":188406,
-			"byteOffset":722232,
+			"byteLength":179832,
+			"byteOffset":694344,
 			"target":34963
 		}
 	],
@@ -153,7 +153,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":910640,
+			"byteLength":874176,
 			"uri":"test.bin"
 		}
 	]
