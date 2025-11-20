@@ -65,15 +65,14 @@ function CameraController({ isPerspective }: { isPerspective: boolean }) {
 }
 
 export default function Scene() {
-  // iOS 감지
-  const isIOS = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // WebGPU 지원 여부 확인 (지원되지 않으면 perspective 카메라 사용)
+  const isWebGPUSupported = useMemo(() => {
+    if (typeof window === 'undefined') return true;
+    return 'gpu' in navigator;
   }, []);
 
   // 상태 관리
-  const [isPerspective, setIsPerspective] = useState(isIOS);
+  const [isPerspective, setIsPerspective] = useState(!isWebGPUSupported);
   const [isNightMode, setIsNightMode] = useState(false);
   const [uNightMix, setUNightMix] = useState(0);
   const animationFrameRef = useRef<number | null>(null);
