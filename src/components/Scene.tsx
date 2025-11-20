@@ -10,30 +10,53 @@ import * as THREE from "three/webgpu";
 import { Sun, Moon, Box } from "lucide-react";
 // import { useControls } from "leva";
 
+// 카메라 설정 상수
+const CAMERA_CONFIG = {
+  perspective: {
+    fov: 0.1,
+    position: [2000, 2000, -2000] as [number, number, number],
+    near: 1000,
+    far: 10000
+  },
+  orthographic: {
+    position: [10, 10, -10] as [number, number, number],
+    zoom: 25,
+    near: 0.01,
+    far: 1000,
+    frustumSize: 150
+  }
+};
+
 // 카메라 전환을 위한 컴포넌트
 function CameraController({ isPerspective }: { isPerspective: boolean }) {
-  const { camera, gl, set } = useThree();
+  const { gl, set } = useThree();
   
   useEffect(() => {
     if (isPerspective) {
       // Perspective 카메라로 전환
-      const perspectiveCamera = new THREE.PerspectiveCamera(30, gl.domElement.width / gl.domElement.height, 0.01, 1000);
-      perspectiveCamera.position.set(5, 5, -5);
+      const config = CAMERA_CONFIG.perspective;
+      const perspectiveCamera = new THREE.PerspectiveCamera(
+        config.fov, 
+        gl.domElement.width / gl.domElement.height, 
+        config.near, 
+        config.far
+      );
+      perspectiveCamera.position.set(...config.position);
       set({ camera: perspectiveCamera });
     } else {
       // Orthographic 카메라로 전환
+      const config = CAMERA_CONFIG.orthographic;
       const aspect = gl.domElement.width / gl.domElement.height;
-      const frustumSize = 150;
       const orthographicCamera = new THREE.OrthographicCamera(
-        -frustumSize * aspect / 2,
-        frustumSize * aspect / 2,
-        frustumSize / 2,
-        -frustumSize / 2,
-        1,
-        1000
+        -config.frustumSize * aspect / 2,
+        config.frustumSize * aspect / 2,
+        config.frustumSize / 2,
+        -config.frustumSize / 2,
+        config.near,
+        config.far
       );
-      orthographicCamera.position.set(10, 10, -10);
-      orthographicCamera.zoom = 25;
+      orthographicCamera.position.set(...config.position);
+      orthographicCamera.zoom = config.zoom;
       set({ camera: orthographicCamera });
     }
   }, [isPerspective, gl, set]);
@@ -42,8 +65,15 @@ function CameraController({ isPerspective }: { isPerspective: boolean }) {
 }
 
 export default function Scene() {
+  // iOS 감지
+  const isIOS = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }, []);
+
   // 상태 관리
-  const [isPerspective, setIsPerspective] = useState(false);
+  const [isPerspective, setIsPerspective] = useState(isIOS);
   const [isNightMode, setIsNightMode] = useState(false);
   const [uNightMix, setUNightMix] = useState(0);
   const animationFrameRef = useRef<number | null>(null);
@@ -96,26 +126,26 @@ export default function Scene() {
     return 1 - (uNightMix * 0.75)
   }, [uNightMix])
 
-  // 카메라 설정
+  // 카메라 설정 (초기값)
   const cameraConfig = useMemo(() => {
     if (isPerspective) {
       return {
         orthographic: false,
         camera: {
-          position: [5, 5, -5],
-          fov: 45,
-          near: 0.01,
-          far: 1000
+          position: CAMERA_CONFIG.perspective.position,
+          fov: CAMERA_CONFIG.perspective.fov,
+          near: CAMERA_CONFIG.perspective.near,
+          far: CAMERA_CONFIG.perspective.far
         }
       }
     } else {
       return {
         orthographic: true,
         camera: {
-          position: [10, 10, -10],
-          zoom: 150,
-          near: 0.01,
-          far: 1000
+          position: CAMERA_CONFIG.orthographic.position,
+          zoom: CAMERA_CONFIG.orthographic.zoom,
+          near: CAMERA_CONFIG.orthographic.near,
+          far: CAMERA_CONFIG.orthographic.far
         }
       }
     }
@@ -147,7 +177,7 @@ export default function Scene() {
           <Reflector />
         </Suspense>
 
-        <OrbitControls autoRotate={true} autoRotateSpeed={0.1} enableDamping makeDefault target={[0, 1.5, 0]} />
+        <OrbitControls autoRotate={true} autoRotateSpeed={0.05} enableDamping makeDefault target={[0, 1.5, 0]} />
 
       </Canvas>
 
