@@ -1,10 +1,40 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import * as THREE from "three/webgpu";
+
+function SceneLights() {
+  const directionalLightRef = useRef<THREE.DirectionalLight>(null);
+  
+  useEffect(() => {
+    if (directionalLightRef.current) {
+      const light = directionalLightRef.current;
+      // VSM shadow 설정을 직접 적용 - radius와 blurSamples를 높여서 더 부드럽게
+      light.shadow.radius = 8;
+      light.shadow.blurSamples = 16;
+    }
+  }, []);
+  
+  return (
+    <directionalLight
+      ref={directionalLightRef}
+      position={[0.25, 2, 1.5]}
+      intensity={7}
+      castShadow
+      shadow-mapSize-width={2048}
+      shadow-mapSize-height={2048}
+      shadow-camera-far={50}
+      shadow-camera-left={-3}
+      shadow-camera-right={3}
+      shadow-camera-top={3}
+      shadow-camera-bottom={-3}
+      shadow-bias={-0.0005}
+    />
+  );
+}
 
 export default function Scene2() {
   const [textureUrl, setTextureUrl] = useState("/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp");
@@ -25,8 +55,14 @@ export default function Scene2() {
             canvas: canvasProps.canvas as HTMLCanvasElement,
             antialias: true
           });
+          
+          // shadowMap 설정을 init() 전에
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.VSMShadowMap;
+          
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
           renderer.toneMappingExposure = 1;
+          
           await renderer.init();
           return renderer;
         }}
@@ -35,20 +71,7 @@ export default function Scene2() {
         <Environment preset="city" environmentIntensity={0.1} />
         
         {/* 조명 */}
-        <directionalLight
-          position={[0.25, 2, 1.5]}
-          intensity={7}
-          castShadow
-          shadow-mapSize-width={4096}
-          shadow-mapSize-height={4096}
-          shadow-camera-far={50}
-          shadow-camera-left={-10}
-          shadow-camera-right={10}
-          shadow-camera-top={10}
-          shadow-camera-bottom={-10}
-          shadow-bias={-0.0001}
-          shadow-radius={10}
-        />
+        <SceneLights />
         
         <Suspense fallback={null}>
           <Model scale={10} textureUrl={textureUrl} />
