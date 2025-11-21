@@ -35,7 +35,7 @@ export default function Home() {
       <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50">
         <button
           onClick={handleToggle}
-          className="relative w-45 h-14 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden"
+          className="relative w-32 h-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden"
         >
           {/* 슬라이딩 배경 */}
           <div
@@ -45,7 +45,7 @@ export default function Home() {
           />
           
           {/* 텍스트 레이블들 */}
-          <div className="relative w-full h-full flex">
+          <div className="relative w-full h-full flex text-xs">
             <div
               className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
                 displayMode === 'object' ? 'text-black' : 'text-white'
@@ -68,14 +68,22 @@ export default function Home() {
         </button>
       </div>
       
-      <div
-        key={displayMode}
-        className={`transition-opacity duration-300 ${
-          isTransitioning ? 'opacity-0' : 'opacity-100'
-        }`}
-      >
-        {displayMode === 'room' ? <Scene /> : <Scene2 />}
-      </div>
+      <>
+        <div
+          className={`absolute inset-0 transition-opacity duration-300 ${
+            displayMode === 'room' && !isTransitioning ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+          }`}
+        >
+          <Scene />
+        </div>
+        <div
+          className={`absolute inset-0 transition-opacity duration-300 ${
+            displayMode === 'object' && !isTransitioning ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+          }`}
+        >
+          <Scene2 />
+        </div>
+      </>
     </>
   )
 }

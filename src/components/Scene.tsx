@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useMemo, useEffect, useState, useRef } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import { ReflectTest } from "./ReflectTest";
 import { Reflector } from "./Reflector";
 import * as THREE from "three/webgpu";
-import { Sun, Moon, Box } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
+import { useScreenSize } from "@/config/useScreenSize";
 // import { useControls } from "leva";
 
 // 카메라 설정 상수
@@ -20,62 +21,93 @@ const CAMERA_CONFIG = {
   },
   orthographic: {
     position: [10, 10, -10] as [number, number, number],
-    zoom: 25,
+    zoom: 150,
     near: 0.01,
     far: 1000,
     frustumSize: 150
   }
 };
 
-// 카메라 전환을 위한 컴포넌트
-function CameraController({ isPerspective }: { isPerspective: boolean }) {
-  const { gl, set } = useThree();
-  
+// 스케일 및 위치 애니메이션을 위한 래퍼 컴포넌트
+function AnimatedModels({ 
+  targetScale, 
+  targetPosition, 
+  nightMix 
+}: { 
+  targetScale: number; 
+  targetPosition: [number, number, number]; 
+  nightMix: number 
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const currentScaleRef = useRef(targetScale);
+  const currentPositionRef = useRef<THREE.Vector3>(new THREE.Vector3(...targetPosition));
+  const isInitializedRef = useRef(false);
+
+  // 초기화: 첫 렌더링 시 현재 스케일과 위치를 targetScale, targetPosition로 설정
   useEffect(() => {
-    if (isPerspective) {
-      // Perspective 카메라로 전환
-      const config = CAMERA_CONFIG.perspective;
-      const perspectiveCamera = new THREE.PerspectiveCamera(
-        config.fov, 
-        gl.domElement.width / gl.domElement.height, 
-        config.near, 
-        config.far
-      );
-      perspectiveCamera.position.set(...config.position);
-      set({ camera: perspectiveCamera });
-    } else {
-      // Orthographic 카메라로 전환
-      const config = CAMERA_CONFIG.orthographic;
-      const aspect = gl.domElement.width / gl.domElement.height;
-      const orthographicCamera = new THREE.OrthographicCamera(
-        -config.frustumSize * aspect / 2,
-        config.frustumSize * aspect / 2,
-        config.frustumSize / 2,
-        -config.frustumSize / 2,
-        config.near,
-        config.far
-      );
-      orthographicCamera.position.set(...config.position);
-      orthographicCamera.zoom = config.zoom;
-      set({ camera: orthographicCamera });
+    if (!isInitializedRef.current && groupRef.current) {
+      currentScaleRef.current = targetScale;
+      currentPositionRef.current.set(...targetPosition);
+      groupRef.current.scale.setScalar(targetScale);
+      groupRef.current.position.copy(currentPositionRef.current);
+      isInitializedRef.current = true;
     }
-  }, [isPerspective, gl, set]);
-  
-  return null;
+  }, [targetScale, targetPosition]);
+
+  useFrame(() => {
+    if (groupRef.current && isInitializedRef.current) {
+      // lerp로 부드럽게 스케일 변경 (0.1 = 보간 속도)
+      currentScaleRef.current += (targetScale - currentScaleRef.current) * 0.1;
+      
+      // 거의 목표에 도달하면 정확한 값으로 설정
+      if (Math.abs(targetScale - currentScaleRef.current) < 0.001) {
+        currentScaleRef.current = targetScale;
+      }
+      
+      groupRef.current.scale.setScalar(currentScaleRef.current);
+
+      // lerp로 부드럽게 위치 변경
+      const targetPos = new THREE.Vector3(...targetPosition);
+      currentPositionRef.current.lerp(targetPos, 0.1);
+      
+      // 거의 목표에 도달하면 정확한 값으로 설정
+      if (currentPositionRef.current.distanceTo(targetPos) < 0.001) {
+        currentPositionRef.current.copy(targetPos);
+      }
+      
+      groupRef.current.position.copy(currentPositionRef.current);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Model nightMix={nightMix} />
+      <ReflectTest />
+      <Reflector />
+    </group>
+  );
 }
 
 export default function Scene() {
+  // 반응형 화면 크기, 스케일, 위치
+  const { scale, position } = useScreenSize();
+  
   // WebGPU 지원 여부 확인 (지원되지 않으면 perspective 카메라 사용)
-  const isWebGPUSupported = useMemo(() => {
-    if (typeof window === 'undefined') return true;
-    return 'gpu' in navigator;
+  const isPerspective = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return !('gpu' in navigator);
   }, []);
 
   // 상태 관리
-  const [isPerspective, setIsPerspective] = useState(!isWebGPUSupported);
   const [isNightMode, setIsNightMode] = useState(false);
   const [uNightMix, setUNightMix] = useState(0);
   const animationFrameRef = useRef<number | null>(null);
+  const uNightMixRef = useRef(0); // 현재 uNightMix 값을 추적하기 위한 ref
+
+  // uNightMix가 변경될 때마다 ref 업데이트
+  useEffect(() => {
+    uNightMixRef.current = uNightMix;
+  }, [uNightMix]);
 
   // // 통합 컨트롤: nightMix 값으로 다른 값들 자동 계산
   // const { uNightMix, isPerspective } = useControls('Scene Settings', {
@@ -86,7 +118,7 @@ export default function Scene() {
   // nightMix 애니메이션
   useEffect(() => {
     const targetValue = isNightMode ? 1 : 0;
-    const startValue = uNightMix;
+    const startValue = uNightMixRef.current; // ref에서 현재 값을 가져옴
     const startTime = Date.now();
     const duration = 800; // 800ms 애니메이션
 
@@ -125,36 +157,25 @@ export default function Scene() {
     return 1 - (uNightMix * 0.75)
   }, [uNightMix])
 
-  // 카메라 설정 (초기값)
-  const cameraConfig = useMemo(() => {
-    if (isPerspective) {
-      return {
-        orthographic: false,
-        camera: {
-          position: CAMERA_CONFIG.perspective.position,
-          fov: CAMERA_CONFIG.perspective.fov,
-          near: CAMERA_CONFIG.perspective.near,
-          far: CAMERA_CONFIG.perspective.far
-        }
-      }
-    } else {
-      return {
-        orthographic: true,
-        camera: {
-          position: CAMERA_CONFIG.orthographic.position,
-          zoom: CAMERA_CONFIG.orthographic.zoom,
-          near: CAMERA_CONFIG.orthographic.near,
-          far: CAMERA_CONFIG.orthographic.far
-        }
-      }
-    }
-  }, [isPerspective])
-
   return (
     <div className="w-screen h-screen">
       <Canvas 
         orthographic={!isPerspective}
-        camera={cameraConfig.camera as any}
+        camera={
+          isPerspective
+            ? {
+                position: CAMERA_CONFIG.perspective.position,
+                fov: CAMERA_CONFIG.perspective.fov,
+                near: CAMERA_CONFIG.perspective.near,
+                far: CAMERA_CONFIG.perspective.far
+              }
+            : {
+                position: CAMERA_CONFIG.orthographic.position,
+                zoom: CAMERA_CONFIG.orthographic.zoom,
+                near: CAMERA_CONFIG.orthographic.near,
+                far: CAMERA_CONFIG.orthographic.far
+              }
+        }
         gl={async (canvasProps) => {
           const renderer = new THREE.WebGPURenderer({
             canvas: canvasProps.canvas as HTMLCanvasElement,
@@ -166,14 +187,11 @@ export default function Scene() {
           return renderer;
         }}
       >
-        <CameraController isPerspective={isPerspective} />
         
         <color attach="background" args={["#111"]} />
         <Environment preset="city" environmentIntensity={envIntensity} />
         <Suspense fallback={null}>
-          <Model nightMix={uNightMix} />
-          <ReflectTest />
-          <Reflector />
+          <AnimatedModels targetScale={scale.main} targetPosition={position.main} nightMix={uNightMix} />
         </Suspense>
 
         <OrbitControls 
@@ -189,38 +207,14 @@ export default function Scene() {
 
       {/* 컨트롤 버튼 */}
       <div className="fixed bottom-[80px] left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
-        {/* Perspective 원형 버튼 */}
-        <button
-          onClick={() => setIsPerspective(!isPerspective)}
-          disabled={!isWebGPUSupported}
-          className={`
-            w-12 h-12 rounded-full
-            backdrop-blur-xl
-            border border-white/20
-            transition-all duration-300
-            flex items-center justify-center
-            text-sm font-medium
-            shadow-lg
-            ${!isWebGPUSupported 
-              ? 'bg-gray-500/30 text-white/30 cursor-not-allowed' 
-              : isPerspective 
-                ? 'bg-blue-500/80 text-white' 
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }
-          `}
-        >
-          <Box className="w-5 h-5" />
-        </button>
-
         {/* Night Mode 토글 버튼 */}
         <button
           onClick={() => setIsNightMode(!isNightMode)}
           className={`
-            relative w-20 h-12 rounded-full
+            relative w-[52px] h-[30px] rounded-full
             backdrop-blur-xl
             border border-white/20
             transition-all duration-300
-            shadow-lg
             flex items-center
             ${isNightMode 
               ? 'bg-white/10' 
@@ -233,10 +227,10 @@ export default function Scene() {
             className={`
               absolute top-1/2 -translate-y-1/2
               transition-all duration-300
-              ${isNightMode ? 'left-[8px] opacity-0' : 'left-[calc(100%-30px)] opacity-100'}
+              ${isNightMode ? 'left-[4px] opacity-0' : 'left-[calc(100%-20px)] opacity-100'}
             `}
           >
-            <Sun className="w-5 h-5 text-yellow-300" />
+            <Sun className="w-4 h-4 text-yellow-300" />
           </div>
 
           {/* 달 아이콘 (밤 모드일 때 왼쪽에) */}
@@ -244,21 +238,20 @@ export default function Scene() {
             className={`
               absolute top-1/2 -translate-y-1/2
               transition-all duration-300
-              ${isNightMode ? 'left-[8px] opacity-100' : 'left-[calc(100%-28px)] opacity-0'}
+              ${isNightMode ? 'left-[4px] opacity-100' : 'left-[calc(100%-28px)] opacity-0'}
             `}
           >
-            <Moon className="w-5 h-5 text-blue-200" />
+            <Moon className="w-4 h-4 text-blue-200" />
           </div>
 
           {/* 흰색 토글 원 */}
           <div
             className={`
-              absolute top-[5px] 
-              w-[36px] h-[36px] 
+              absolute top-[4px] 
+              w-[20px] h-[20px] 
               rounded-full
               transition-all duration-300
-              shadow-md
-              ${isNightMode ? 'bg-blue-200 left-[calc(100%-41px)]' : 'bg-yellow-300 left-[5px]'}
+              ${isNightMode ? 'bg-blue-200 left-[calc(100%-24px)]' : 'bg-yellow-300 left-[4px]'}
             `}
           />
         </button>

@@ -1,13 +1,75 @@
 "use client";
 
 import { Suspense, useState, useRef, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import * as THREE from "three/webgpu";
 import { BASE_PATH } from "@/config/basePath";
+import { useScreenSize } from "@/config/useScreenSize";
+
+// 스케일 및 위치 애니메이션을 위한 래퍼 컴포넌트
+function AnimatedModel({ 
+  targetScale, 
+  targetPosition,
+  textureUrl 
+}: { 
+  targetScale: number; 
+  targetPosition: [number, number, number];
+  textureUrl: string 
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const currentScaleRef = useRef(targetScale);
+  const currentPositionRef = useRef<THREE.Vector3>(new THREE.Vector3(...targetPosition));
+  const isInitializedRef = useRef(false);
+
+  // 초기화: 첫 렌더링 시 현재 스케일과 위치를 targetScale, targetPosition로 설정
+  useEffect(() => {
+    if (!isInitializedRef.current && groupRef.current) {
+      currentScaleRef.current = targetScale;
+      currentPositionRef.current.set(...targetPosition);
+      groupRef.current.scale.setScalar(targetScale);
+      groupRef.current.position.copy(currentPositionRef.current);
+      isInitializedRef.current = true;
+    }
+  }, [targetScale, targetPosition]);
+
+  useFrame(() => {
+    if (groupRef.current && isInitializedRef.current) {
+      // lerp로 부드럽게 스케일 변경 (0.1 = 보간 속도)
+      currentScaleRef.current += (targetScale - currentScaleRef.current) * 0.1;
+      
+      // 거의 목표에 도달하면 정확한 값으로 설정
+      if (Math.abs(targetScale - currentScaleRef.current) < 0.001) {
+        currentScaleRef.current = targetScale;
+      }
+      
+      groupRef.current.scale.setScalar(currentScaleRef.current);
+
+      // lerp로 부드럽게 위치 변경
+      const targetPos = new THREE.Vector3(...targetPosition);
+      currentPositionRef.current.lerp(targetPos, 0.1);
+      
+      // 거의 목표에 도달하면 정확한 값으로 설정
+      if (currentPositionRef.current.distanceTo(targetPos) < 0.001) {
+        currentPositionRef.current.copy(targetPos);
+      }
+      
+      groupRef.current.position.copy(currentPositionRef.current);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Model scale={1} position={[0, 0, 0]} textureUrl={textureUrl} />
+    </group>
+  );
+}
 
 export default function Scene2() {
+  // 반응형 화면 크기, 스케일, 위치
+  const { scale, position } = useScreenSize();
+  
   const [textureUrl, setTextureUrl] = useState(`${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`);
   
   return (
@@ -39,10 +101,10 @@ export default function Scene2() {
         }}
       >
         <color attach="background" args={["#fff"]} />
-        <ambientLight intensity={1.5} />
+        <ambientLight intensity={1} />
         <directionalLight 
-          position={[-0.2, 2, 1]} 
-          intensity={0.5} 
+          position={[-0.3, 2, 1]} 
+          intensity={1} 
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -55,12 +117,12 @@ export default function Scene2() {
 
         
         <Suspense fallback={null}>
-          <Model scale={10} position={[0, -2, 0]} textureUrl={textureUrl} />
+          <AnimatedModel targetScale={scale.test} targetPosition={position.test} textureUrl={textureUrl} />
             
           {/* 바닥 plane */}
           <mesh 
             rotation={[-Math.PI / 2, 0, 0]} 
-            position={[0, -2, 0]} 
+            position={position.test} 
             receiveShadow
           >
             <planeGeometry args={[100, 100]} />
