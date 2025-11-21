@@ -23,12 +23,16 @@ function Model({
 }) {
   const { scene: model } = useGLTF("/test/cylinder.gltf");
   const groupRef = useRef<THREE.Group>(null);
+  const [isProcessed, setIsProcessed] = useState(false);
 
   useEffect(() => {
-    if (model && groupRef.current) {
+    if (model && groupRef.current && !isProcessed) {
       console.log("Model loaded:", model);
+      console.log("GroupRef:", groupRef.current);
 
-      model.traverse((child) => {
+      const clonedModel = model.clone(true);
+      
+      clonedModel.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           console.log("Mesh found:", child.name);
           console.log("Has UV:", child.geometry.hasAttribute("uv"));
@@ -37,7 +41,14 @@ function Model({
           child.name = "Loaded Mesh";
           child.castShadow = true;
           child.receiveShadow = true;
-          child.material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+          
+          // 기존 머티리얼 확인
+          console.log("Original material:", child.material);
+          
+          child.material = new THREE.MeshPhongMaterial({ 
+            color: 0xffffff,
+            side: THREE.DoubleSide 
+          });
 
           // This adds the model to the lightmap
           lightmapObjects.current.push(child);
@@ -45,19 +56,22 @@ function Model({
             progressiveLightMapRef.current.addObjectsToLightMap(lightmapObjects.current);
             console.log("Added to lightmap, total objects:", lightmapObjects.current.length);
           }
-        } else {
-          child.layers.disableAll();
         }
       });
 
+      // Add cloned model to group
+      if (groupRef.current.children.length > 0) {
+        groupRef.current.remove(...groupRef.current.children);
+      }
+      groupRef.current.add(clonedModel);
+      
       onModelLoaded(groupRef.current);
+      setIsProcessed(true);
     }
-  }, [model, progressiveLightMapRef, lightmapObjects, onModelLoaded]);
+  }, [model, progressiveLightMapRef, lightmapObjects, onModelLoaded, isProcessed]);
 
   return (
-    <group ref={groupRef} scale={100} position={[0, 0, 0]}>
-      <primitive object={model} />
-    </group>
+    <group ref={groupRef} scale={100} position={[0, 0, 0]} />
   );
 }
 
@@ -261,6 +275,10 @@ function SceneContent({
       <color attach="background" args={["#949494"]} />
       <fog attach="fog" args={["#949494", 1000, 3000]} />
 
+      {/* 기본 조명 (디버깅용) */}
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+
       {/* Progressive Lights */}
       <ProgressiveLights
         lightOriginPosition={lightOriginPosition}
@@ -280,7 +298,17 @@ function SceneContent({
         receiveShadow
       >
         <planeGeometry args={[600, 600]} />
-        <meshPhongMaterial color={0xffffff} depthWrite={true} />
+        <meshPhongMaterial color="#cccccc" depthWrite={true} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Helpers (디버깅용) */}
+      <gridHelper args={[600, 60]} position={[0, -20, 0]} />
+      <axesHelper args={[100]} />
+
+      {/* 테스트 큐브 */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[20, 20, 20]} />
+        <meshPhongMaterial color="orange" />
       </mesh>
 
       {/* Model */}
@@ -299,8 +327,8 @@ function SceneContent({
         enableDamping
         dampingFactor={0.05}
         screenSpacePanning
-        minDistance={10}
-        maxDistance={500}
+        minDistance={50}
+        maxDistance={1000}
         maxPolarAngle={Math.PI / 1.5}
         target={[0, 0, 0]}
         makeDefault
@@ -418,9 +446,9 @@ export default function Scene3() {
       <Canvas
         shadows
         camera={{
-          position: [0, 50, 150],
+          position: [0, 80, 250],
           fov: 70,
-          near: 1,
+          near: 0.1,
           far: 5000,
         }}
         gl={async (canvasProps) => {
