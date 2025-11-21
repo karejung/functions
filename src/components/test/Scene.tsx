@@ -101,9 +101,9 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
           return renderer;
         }}
       >
-        <color attach="background" args={["#fff"]} />
+        <color attach="background" args={["#eee"]} />
         <directionalLight 
-          position={[-3, 5, 3]} 
+          position={[-1, 5, 3]} 
           intensity={2} 
           castShadow
           shadow-mapSize-width={2048}
@@ -188,7 +188,7 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
               : 'border-gray-400/50'
             }
           `}
-          style={{ backgroundColor: '#ffffff' }}
+          style={{ backgroundColor: '#f0f0f0' }}
           aria-label="White texture"
         />
       </div>
