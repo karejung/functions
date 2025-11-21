@@ -6,35 +6,6 @@ import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import * as THREE from "three/webgpu";
 
-function SceneLights() {
-  const directionalLightRef = useRef<THREE.DirectionalLight>(null);
-  
-  useEffect(() => {
-    if (directionalLightRef.current) {
-      const light = directionalLightRef.current;
-      // VSM shadow 설정을 직접 적용 - radius와 blurSamples를 높여서 더 부드럽게
-      light.shadow.radius = 8;
-      light.shadow.blurSamples = 16;
-    }
-  }, []);
-  
-  return (
-    <directionalLight
-      ref={directionalLightRef}
-      position={[0.25, 2, 1.5]}
-      intensity={7}
-      castShadow
-      shadow-mapSize-width={2048}
-      shadow-mapSize-height={2048}
-      shadow-camera-far={50}
-      shadow-camera-left={-3}
-      shadow-camera-right={3}
-      shadow-camera-top={3}
-      shadow-camera-bottom={-3}
-      shadow-bias={-0.0005}
-    />
-  );
-}
 
 export default function Scene2() {
   const [textureUrl, setTextureUrl] = useState("/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp");
@@ -68,28 +39,40 @@ export default function Scene2() {
         }}
       >
         <color attach="background" args={["#fff"]} />
-        <Environment preset="city" environmentIntensity={0.1} />
-        
-        {/* 조명 */}
-        <SceneLights />
+        <ambientLight intensity={1.5} />
+        <directionalLight 
+          position={[-0.2, 2, 1]} 
+          intensity={0.5} 
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-far={50}
+          shadow-camera-left={-50}
+          shadow-camera-right={50}
+          shadow-camera-top={50}
+          shadow-camera-bottom={-50}
+        />
+
         
         <Suspense fallback={null}>
-          <Model scale={10} textureUrl={textureUrl} />
+          <Model scale={10} position={[0, -2, 0]} textureUrl={textureUrl} />
             
           {/* 바닥 plane */}
           <mesh 
             rotation={[-Math.PI / 2, 0, 0]} 
-            position={[0, 0, 0]} 
+            position={[0, -2, 0]} 
             receiveShadow
           >
             <planeGeometry args={[100, 100]} />
-            <meshStandardMaterial color="#fff" />
+            <shadowMaterial transparent opacity={0.2} />
           </mesh>
         </Suspense>
 
         <OrbitControls 
           autoRotate={true}
-          autoRotateSpeed={0.1}
+          autoRotateSpeed={0.2}
+          enableZoom={false}
+          enablePan={false}
           enableRotate={true}
           enableDamping 
           makeDefault 
