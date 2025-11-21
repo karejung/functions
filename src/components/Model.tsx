@@ -2,19 +2,19 @@ import * as THREE from 'three/webgpu'
 import { texture, uniform, mix } from 'three/tsl'
 import React, { useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
+import { BASE_PATH } from '@/config/basePath'
 
 type ModelProps = React.JSX.IntrinsicElements['group'] & {
   nightMix: number
 }
 
 export function Model({ nightMix, ...props }: ModelProps) {
-  const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
-  const { scene } = useGLTF(`${basePath}/gltf/test.gltf`)
+  const { scene } = useGLTF(`${BASE_PATH}/gltf/test.gltf`)
   
   // 2개의 Baked 텍스처 로드 (Day & Night)
   const [bakedTexture1, bakedTexture2] = useTexture([
-    `${basePath}/gltf/texture/retopoBed_Baked.webp`,
-    `${basePath}/gltf/texture/retopoBed_Baked2.webp`
+    `${BASE_PATH}/gltf/texture/retopoBed_Baked.webp`,
+    `${BASE_PATH}/gltf/texture/retopoBed_Baked2.webp`
   ])
   
   // 텍스처 설정
@@ -86,7 +86,6 @@ export function Model({ nightMix, ...props }: ModelProps) {
   return <primitive object={scene} {...props} />
 }
 
-const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
-useGLTF.preload(`${basePath}/gltf/test.gltf`)
-useTexture.preload(`${basePath}/gltf/texture/retopoBed_Baked.webp`)
-useTexture.preload(`${basePath}/gltf/texture/retopoBed_Baked2.webp`)
+useGLTF.preload(`${BASE_PATH}/gltf/test.gltf`)
+useTexture.preload(`${BASE_PATH}/gltf/texture/retopoBed_Baked.webp`)
+useTexture.preload(`${BASE_PATH}/gltf/texture/retopoBed_Baked2.webp`)

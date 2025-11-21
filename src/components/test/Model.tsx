@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { GLTF } from 'three-stdlib'
+import { BASE_PATH } from '@/config/basePath'
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -29,16 +30,15 @@ const getTextureKey = (url: string): 'combined' | 'black' | 'white' => {
 }
 
 export function Model({ textureUrl, ...props }: ModelProps) {
-  const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
   const group = useRef<THREE.Group>(null)
-  const { nodes, materials, animations } = useGLTF(`${basePath}/test/cylinder.gltf`) as unknown as GLTFResult
+  const { nodes, materials, animations } = useGLTF(`${BASE_PATH}/test/cylinder.gltf`) as unknown as GLTFResult
   const { actions } = useAnimations(animations, group)
   
   // 모든 텍스처를 한 번에 preload
   const textures = useTexture({
-    combined: `${basePath}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`,
-    black: `${basePath}/test/textures/black.webp`,
-    white: `${basePath}/test/textures/white.webp`
+    combined: `${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`,
+    black: `${BASE_PATH}/test/textures/black.webp`,
+    white: `${BASE_PATH}/test/textures/white.webp`
   })
   
   // 텍스처 설정 (모든 텍스처에 대해)
@@ -181,5 +181,4 @@ export function Model({ textureUrl, ...props }: ModelProps) {
   )
 }
 
-const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
-useGLTF.preload(`${basePath}/test/cylinder.gltf`)
+useGLTF.preload(`${BASE_PATH}/test/cylinder.gltf`)

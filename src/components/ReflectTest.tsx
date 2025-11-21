@@ -3,10 +3,10 @@ import { reflector, uniform } from 'three/tsl'
 // import { useControls } from 'leva'
 import { useGLTF } from '@react-three/drei'
 import React, { useMemo } from 'react'
+import { BASE_PATH } from '@/config/basePath'
 
 export function ReflectTest() {
-  const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
-  const { scene: floorScene } = useGLTF(`${basePath}/gltf/texture/floormesh.glb`)
+  const { scene: floorScene } = useGLTF(`${BASE_PATH}/gltf/texture/floormesh.glb`)
   
   // const { reflectionIntensity } = useControls('Reflection', {
   //   reflectionIntensity: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Intensity' },
@@ -62,6 +62,5 @@ export function ReflectTest() {
   )
 }
 
-const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
-useGLTF.preload(`${basePath}/gltf/texture/floormesh.glb`)
+useGLTF.preload(`${BASE_PATH}/gltf/texture/floormesh.glb`)
 

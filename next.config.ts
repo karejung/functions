@@ -1,12 +1,13 @@
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === 'production';
+const BASE_PATH = '/functions';
 
 const nextConfig: NextConfig = {
   // 프로덕션 빌드일 때만 basePath 적용
   ...(isProd && {
-    basePath: "/functions",
-    assetPrefix: "/functions",
+    basePath: BASE_PATH,
+    assetPrefix: BASE_PATH,
   }),
   output: "export",
   images: {

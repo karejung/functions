@@ -176,7 +176,14 @@ export default function Scene() {
           <Reflector />
         </Suspense>
 
-        <OrbitControls autoRotate={true} autoRotateSpeed={0.05} enableDamping makeDefault target={[0, 1.5, 0]} />
+        <OrbitControls 
+          autoRotate={true} 
+          autoRotateSpeed={0.05} 
+          enableDamping 
+          makeDefault 
+          target={[0, 1.5, 0]}
+          maxPolarAngle={Math.PI / 2} // 수평 아래로 회전 제한
+        />
 
       </Canvas>
 
@@ -185,6 +192,7 @@ export default function Scene() {
         {/* Perspective 원형 버튼 */}
         <button
           onClick={() => setIsPerspective(!isPerspective)}
+          disabled={!isWebGPUSupported}
           className={`
             w-12 h-12 rounded-full
             backdrop-blur-xl
@@ -193,9 +201,11 @@ export default function Scene() {
             flex items-center justify-center
             text-sm font-medium
             shadow-lg
-            ${isPerspective 
-              ? 'bg-blue-500/80 text-white' 
-              : 'bg-white/10 text-white/70 hover:bg-white/20'
+            ${!isWebGPUSupported 
+              ? 'bg-gray-500/30 text-white/30 cursor-not-allowed' 
+              : isPerspective 
+                ? 'bg-blue-500/80 text-white' 
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
             }
           `}
         >
