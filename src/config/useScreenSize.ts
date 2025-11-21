@@ -48,7 +48,7 @@ export function useScreenSize() {
 
   // 화면 크기에 따른 스케일 및 위치 값 계산
   const calculateResponsiveValues = (): { scale: ScaleConfig; position: PositionConfig } => {
-    const { width } = screenSize;
+    const { width, height } = screenSize;
 
     let mainScale = 1;     // Scene.tsx의 기본값
     let testScale = 10;    // test/Scene.tsx의 기본값
@@ -77,6 +77,16 @@ export function useScreenSize() {
       mainPosY = 0;      // 기본 위치
       testPosY = -2;     // 기본 위치
     }
+
+    // 실제 브라우저 높이에 따른 Y 위치 조정
+    // 기준 높이(800px)보다 작으면 위로 올리고, 크면 아래로 내림
+    const baseHeight = 800;
+    const heightDiff = (height - baseHeight) / baseHeight;
+    
+    // heightDiff를 적용한 최종 Y 위치 계산
+    // 높이가 작을수록 더 위로 올림 (모바일 하단바 고려)
+    mainPosY += heightDiff * 0.5;  // main은 height 변화의 50%만 적용
+    testPosY += heightDiff * 0.8;  // test는 height 변화의 80% 적용
 
     return {
       scale: {

@@ -126,7 +126,7 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
             receiveShadow
           >
             <planeGeometry args={[100, 100]} />
-            <shadowMaterial transparent opacity={0.2} />
+            <shadowMaterial transparent opacity={0.25} />
           </mesh>
         </Suspense>
 
