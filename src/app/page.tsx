@@ -8,6 +8,7 @@ export default function Home() {
   const [mode, setMode] = useState<'room' | 'object'>('room')
   const [displayMode, setDisplayMode] = useState<'room' | 'object'>('room')
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isNightMode, setIsNightMode] = useState(false)
 
   const handleToggle = () => {
     const newMode = mode === 'room' ? 'object' : 'room'
@@ -74,14 +75,18 @@ export default function Home() {
             displayMode === 'room' && !isTransitioning ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          <Scene />
+          <Scene 
+            isNightMode={isNightMode} 
+            setIsNightMode={setIsNightMode}
+            isActive={displayMode === 'room' && !isTransitioning}
+          />
         </div>
         <div
           className={`absolute inset-0 transition-opacity duration-300 ${
             displayMode === 'object' && !isTransitioning ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          <Scene2 />
+          <Scene2 isActive={displayMode === 'object' && !isTransitioning} />
         </div>
       </>
     </>

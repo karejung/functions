@@ -88,7 +88,15 @@ function AnimatedModels({
   );
 }
 
-export default function Scene() {
+export default function Scene({ 
+  isNightMode, 
+  setIsNightMode,
+  isActive 
+}: { 
+  isNightMode: boolean; 
+  setIsNightMode: (value: boolean) => void;
+  isActive: boolean;
+}) {
   // 반응형 화면 크기, 스케일, 위치
   const { scale, position } = useScreenSize();
   
@@ -99,10 +107,9 @@ export default function Scene() {
   }, []);
 
   // 상태 관리
-  const [isNightMode, setIsNightMode] = useState(false);
-  const [uNightMix, setUNightMix] = useState(0);
+  const [uNightMix, setUNightMix] = useState(isNightMode ? 1 : 0);
   const animationFrameRef = useRef<number | null>(null);
-  const uNightMixRef = useRef(0); // 현재 uNightMix 값을 추적하기 위한 ref
+  const uNightMixRef = useRef(isNightMode ? 1 : 0); // 현재 uNightMix 값을 추적하기 위한 ref
 
   // uNightMix가 변경될 때마다 ref 업데이트
   useEffect(() => {
@@ -160,6 +167,7 @@ export default function Scene() {
   return (
     <div className="w-screen h-screen">
       <Canvas 
+        frameloop={isActive ? 'always' : 'never'}
         orthographic={!isPerspective}
         camera={
           isPerspective
@@ -206,19 +214,19 @@ export default function Scene() {
       </Canvas>
 
       {/* 컨트롤 버튼 */}
-      <div className="fixed bottom-[80px] left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
         {/* Night Mode 토글 버튼 */}
         <button
           onClick={() => setIsNightMode(!isNightMode)}
           className={`
-            relative w-[52px] h-[30px] rounded-full
+            relative w-16 h-8 rounded-full
             backdrop-blur-xl
             border border-white/20
             transition-all duration-300
             flex items-center
             ${isNightMode 
               ? 'bg-white/10' 
-              : 'bg-white/50 hover:bg-white/60'
+              : 'bg-white/30 hover:bg-white/60'
             }
           `}
         >
@@ -227,7 +235,7 @@ export default function Scene() {
             className={`
               absolute top-1/2 -translate-y-1/2
               transition-all duration-300
-              ${isNightMode ? 'left-[4px] opacity-0' : 'left-[calc(100%-20px)] opacity-100'}
+              ${isNightMode ? 'left-[8px] opacity-0' : 'left-[calc(100%-22px)] opacity-100'}
             `}
           >
             <Sun className="w-4 h-4 text-yellow-300" />
@@ -238,7 +246,7 @@ export default function Scene() {
             className={`
               absolute top-1/2 -translate-y-1/2
               transition-all duration-300
-              ${isNightMode ? 'left-[4px] opacity-100' : 'left-[calc(100%-28px)] opacity-0'}
+              ${isNightMode ? 'left-[6px] opacity-100' : 'left-[calc(100%-28px)] opacity-0'}
             `}
           >
             <Moon className="w-4 h-4 text-blue-200" />
@@ -247,11 +255,11 @@ export default function Scene() {
           {/* 흰색 토글 원 */}
           <div
             className={`
-              absolute top-[4px] 
-              w-[20px] h-[20px] 
+              absolute top-[50%] -translate-y-1/2
+              w-6 h-6 
               rounded-full
               transition-all duration-300
-              ${isNightMode ? 'bg-blue-200 left-[calc(100%-24px)]' : 'bg-yellow-300 left-[4px]'}
+              ${isNightMode ? 'bg-blue-200 left-[calc(100%-28px)]' : 'bg-yellow-300 left-[4px]'}
             `}
           />
         </button>

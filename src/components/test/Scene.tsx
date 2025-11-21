@@ -66,7 +66,7 @@ function AnimatedModel({
   );
 }
 
-export default function Scene2() {
+export default function Scene2({ isActive }: { isActive: boolean }) {
   // 반응형 화면 크기, 스케일, 위치
   const { scale, position } = useScreenSize();
   
@@ -75,6 +75,7 @@ export default function Scene2() {
   return (
     <div className="w-screen h-screen relative">
       <Canvas
+        frameloop={isActive ? 'always' : 'never'}
         shadows
         orthographic
         camera={{
@@ -101,10 +102,9 @@ export default function Scene2() {
         }}
       >
         <color attach="background" args={["#fff"]} />
-        <ambientLight intensity={1} />
         <directionalLight 
-          position={[-0.3, 2, 1]} 
-          intensity={1} 
+          position={[-3, 5, 3]} 
+          intensity={2} 
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -148,10 +148,9 @@ export default function Scene2() {
         <button
           onClick={() => setTextureUrl(`${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`)}
           className={`
-            w-14 h-14 rounded-full
+            w-8 h-8 rounded-full
             transition-all duration-300
-            border-4
-            shadow-lg hover:scale-110
+            border-2 hover:scale-110
             ${textureUrl === `${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
@@ -165,10 +164,9 @@ export default function Scene2() {
         <button
           onClick={() => setTextureUrl(`${BASE_PATH}/test/textures/black.webp`)}
           className={`
-            w-14 h-14 rounded-full
+            w-8 h-8 rounded-full
             transition-all duration-300
-            border-4
-            shadow-lg hover:scale-110
+            border-2 hover:scale-110
             ${textureUrl === `${BASE_PATH}/test/textures/black.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
@@ -182,10 +180,9 @@ export default function Scene2() {
         <button
           onClick={() => setTextureUrl(`${BASE_PATH}/test/textures/white.webp`)}
           className={`
-            w-14 h-14 rounded-full
+            w-8 h-8 rounded-full
             transition-all duration-300
-            border-4
-            shadow-lg hover:scale-110
+            border-2 hover:scale-110
             ${textureUrl === `${BASE_PATH}/test/textures/white.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
