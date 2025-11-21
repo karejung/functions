@@ -6,9 +6,10 @@ import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import * as THREE from "three/webgpu";
 
+const basePath = process.env.NODE_ENV === 'production' ? '/functions' : '';
 
 export default function Scene2() {
-  const [textureUrl, setTextureUrl] = useState("/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp");
+  const [textureUrl, setTextureUrl] = useState(`${basePath}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`);
   
   return (
     <div className="w-screen h-screen relative">
@@ -84,13 +85,13 @@ export default function Scene2() {
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-10">
         {/* 초록색 버튼 */}
         <button
-          onClick={() => setTextureUrl("/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp")}
+          onClick={() => setTextureUrl(`${basePath}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`)}
           className={`
             w-14 h-14 rounded-full
             transition-all duration-300
             border-4
             shadow-lg hover:scale-110
-            ${textureUrl === "/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp" 
+            ${textureUrl === `${basePath}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
             }
@@ -101,13 +102,13 @@ export default function Scene2() {
 
         {/* 검정색 버튼 */}
         <button
-          onClick={() => setTextureUrl("/test/textures/black.webp")}
+          onClick={() => setTextureUrl(`${basePath}/test/textures/black.webp`)}
           className={`
             w-14 h-14 rounded-full
             transition-all duration-300
             border-4
             shadow-lg hover:scale-110
-            ${textureUrl === "/test/textures/black.webp" 
+            ${textureUrl === `${basePath}/test/textures/black.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
             }
@@ -118,13 +119,13 @@ export default function Scene2() {
 
         {/* 흰색 버튼 */}
         <button
-          onClick={() => setTextureUrl("/test/textures/white.webp")}
+          onClick={() => setTextureUrl(`${basePath}/test/textures/white.webp`)}
           className={`
             w-14 h-14 rounded-full
             transition-all duration-300
             border-4
             shadow-lg hover:scale-110
-            ${textureUrl === "/test/textures/white.webp" 
+            ${textureUrl === `${basePath}/test/textures/white.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
             }

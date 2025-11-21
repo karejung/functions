@@ -5,7 +5,7 @@ import { useGLTF } from '@react-three/drei'
 import React, { useMemo } from 'react'
 
 export function ReflectTest() {
-  const basePath = process.env.NODE_ENV === 'production' ? '/lightmap' : ''
+  const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
   const { scene: floorScene } = useGLTF(`${basePath}/gltf/texture/floormesh.glb`)
   
   // const { reflectionIntensity } = useControls('Reflection', {
@@ -62,6 +62,6 @@ export function ReflectTest() {
   )
 }
 
-const basePath = process.env.NODE_ENV === 'production' ? '/lightmap' : ''
+const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
 useGLTF.preload(`${basePath}/gltf/texture/floormesh.glb`)
 

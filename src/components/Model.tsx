@@ -8,7 +8,7 @@ type ModelProps = React.JSX.IntrinsicElements['group'] & {
 }
 
 export function Model({ nightMix, ...props }: ModelProps) {
-  const basePath = process.env.NODE_ENV === 'production' ? '/lightmap' : ''
+  const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
   const { scene } = useGLTF(`${basePath}/gltf/test.gltf`)
   
   // 2개의 Baked 텍스처 로드 (Day & Night)
@@ -86,7 +86,7 @@ export function Model({ nightMix, ...props }: ModelProps) {
   return <primitive object={scene} {...props} />
 }
 
-const basePath = process.env.NODE_ENV === 'production' ? '/lightmap' : ''
+const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
 useGLTF.preload(`${basePath}/gltf/test.gltf`)
 useTexture.preload(`${basePath}/gltf/texture/retopoBed_Baked.webp`)
 useTexture.preload(`${basePath}/gltf/texture/retopoBed_Baked2.webp`)

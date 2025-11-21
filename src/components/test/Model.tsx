@@ -29,15 +29,16 @@ const getTextureKey = (url: string): 'combined' | 'black' | 'white' => {
 }
 
 export function Model({ textureUrl, ...props }: ModelProps) {
+  const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
   const group = useRef<THREE.Group>(null)
-  const { nodes, materials, animations } = useGLTF('/test/cylinder.gltf') as unknown as GLTFResult
+  const { nodes, materials, animations } = useGLTF(`${basePath}/test/cylinder.gltf`) as unknown as GLTFResult
   const { actions } = useAnimations(animations, group)
   
   // 모든 텍스처를 한 번에 preload
   const textures = useTexture({
-    combined: "/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp",
-    black: "/test/textures/black.webp",
-    white: "/test/textures/white.webp"
+    combined: `${basePath}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`,
+    black: `${basePath}/test/textures/black.webp`,
+    white: `${basePath}/test/textures/white.webp`
   })
   
   // 텍스처 설정 (모든 텍스처에 대해)
@@ -180,4 +181,5 @@ export function Model({ textureUrl, ...props }: ModelProps) {
   )
 }
 
-useGLTF.preload('/test/cylinder.gltf')
+const basePath = process.env.NODE_ENV === 'production' ? '/functions' : ''
+useGLTF.preload(`${basePath}/test/cylinder.gltf`)
