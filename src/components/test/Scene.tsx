@@ -36,7 +36,7 @@ export default function Scene2() {
         
         {/* 조명 */}
         <directionalLight
-          position={[-1, 3, 1]}
+          position={[0.25, 2, 1.5]}
           intensity={7}
           castShadow
           shadow-mapSize-width={4096}
@@ -67,7 +67,7 @@ export default function Scene2() {
         <OrbitControls 
           autoRotate={true}
           autoRotateSpeed={0.1}
-          enableRotate={false}
+          enableRotate={true}
           enableDamping 
           makeDefault 
           target={[0, 0, 0]} 
