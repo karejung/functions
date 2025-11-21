@@ -32,12 +32,12 @@ export default function Scene2() {
         }}
       >
         <color attach="background" args={["#fff"]} />
-        <Environment preset="city" environmentIntensity={1} />
+        <Environment preset="city" environmentIntensity={0.1} />
         
         {/* 조명 */}
         <directionalLight
           position={[-1, 3, 1]}
-          intensity={1}
+          intensity={7}
           castShadow
           shadow-mapSize-width={4096}
           shadow-mapSize-height={4096}
