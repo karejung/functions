@@ -1,14 +1,16 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei";
 import { Model } from "./Model";
 import * as THREE from "three/webgpu";
 
 export default function Scene2() {
+  const [textureUrl, setTextureUrl] = useState("/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp");
+  
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-screen relative">
       <Canvas
         shadows
         orthographic
@@ -35,7 +37,7 @@ export default function Scene2() {
         {/* 조명 */}
         <directionalLight
           position={[-1, 3, 1]}
-          intensity={2}
+          intensity={1}
           castShadow
           shadow-mapSize-width={4096}
           shadow-mapSize-height={4096}
@@ -49,8 +51,8 @@ export default function Scene2() {
         />
         
         <Suspense fallback={null}>
-          <Model scale={10}/>
-           
+          <Model scale={10} textureUrl={textureUrl} />
+            
           {/* 바닥 plane */}
           <mesh 
             rotation={[-Math.PI / 2, 0, 0]} 
@@ -64,12 +66,67 @@ export default function Scene2() {
 
         <OrbitControls 
           autoRotate={true}
-          autoRotateSpeed={1}
+          autoRotateSpeed={0.1}
+          enableRotate={false}
           enableDamping 
           makeDefault 
           target={[0, 0, 0]} 
         />
       </Canvas>
+
+      {/* 컬러 버튼 */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-10">
+        {/* 초록색 버튼 */}
+        <button
+          onClick={() => setTextureUrl("/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp")}
+          className={`
+            w-14 h-14 rounded-full
+            transition-all duration-300
+            border-4
+            shadow-lg hover:scale-110
+            ${textureUrl === "/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp" 
+              ? 'border-white scale-110' 
+              : 'border-gray-400/50'
+            }
+          `}
+          style={{ backgroundColor: '#4ade80' }}
+          aria-label="Green texture"
+        />
+
+        {/* 검정색 버튼 */}
+        <button
+          onClick={() => setTextureUrl("/test/textures/black.webp")}
+          className={`
+            w-14 h-14 rounded-full
+            transition-all duration-300
+            border-4
+            shadow-lg hover:scale-110
+            ${textureUrl === "/test/textures/black.webp" 
+              ? 'border-white scale-110' 
+              : 'border-gray-400/50'
+            }
+          `}
+          style={{ backgroundColor: '#000000' }}
+          aria-label="Black texture"
+        />
+
+        {/* 흰색 버튼 */}
+        <button
+          onClick={() => setTextureUrl("/test/textures/white.webp")}
+          className={`
+            w-14 h-14 rounded-full
+            transition-all duration-300
+            border-4
+            shadow-lg hover:scale-110
+            ${textureUrl === "/test/textures/white.webp" 
+              ? 'border-white scale-110' 
+              : 'border-gray-400/50'
+            }
+          `}
+          style={{ backgroundColor: '#ffffff' }}
+          aria-label="White texture"
+        />
+      </div>
     </div>
   );
 }
