@@ -103,8 +103,8 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
       >
         <color attach="background" args={["#eee"]} />
         <directionalLight 
-          position={[-1, 5, 3]} 
-          intensity={2} 
+          position={[0, 5, 3]} 
+          intensity={1} 
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
