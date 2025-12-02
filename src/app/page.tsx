@@ -3,15 +3,16 @@
 import { useState } from 'react'
 import Scene from '@/components/light/Scene'
 import Scene2 from '@/components/color/Scene'
+import Scene3 from '@/components/module/Scene'
 
 export default function Home() {
-  const [mode, setMode] = useState<'room' | 'object'>('room')
-  const [displayMode, setDisplayMode] = useState<'room' | 'object'>('room')
+  const [mode, setMode] = useState<'room' | 'object' | 'module'>('room')
+  const [displayMode, setDisplayMode] = useState<'room' | 'object' | 'module'>('room')
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isNightMode, setIsNightMode] = useState(false)
 
-  const handleToggle = () => {
-    const newMode = mode === 'room' ? 'object' : 'room'
+  const handleModeChange = (newMode: 'room' | 'object' | 'module') => {
+    if (newMode === mode) return
     
     // 1. 슬라이딩 애니메이션 먼저 시작
     setMode(newMode)
@@ -34,39 +35,48 @@ export default function Home() {
   return (
     <>
       <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50">
-        <button
-          onClick={handleToggle}
-          className="relative w-32 h-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden"
-        >
+        <div className="relative w-48 h-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden">
           {/* 슬라이딩 배경 */}
           <div
-            className={`absolute top-0 bottom-0 w-1/2 bg-white/30 transition-all duration-300 rounded-lg ${
-              mode === 'room' ? 'left-0' : 'left-1/2'
+            className={`absolute top-0 bottom-0 w-1/3 bg-white/30 transition-all duration-300 rounded-lg ${
+              mode === 'room' ? 'left-0' : mode === 'object' ? 'left-1/3' : 'left-2/3'
             }`}
           />
           
           {/* 텍스트 레이블들 */}
           <div className="relative w-full h-full flex text-xs">
-            <div
+            <button
+              onClick={() => handleModeChange('room')}
               className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
-                displayMode === 'object' ? 'text-black' : 'text-white'
+                displayMode === 'object' || displayMode === 'module' ? 'text-black' : 'text-white'
               } ${
                 mode === 'room' ? 'opacity-100' : 'opacity-60'
               }`}
             >
               ROOM
-            </div>
-            <div
+            </button>
+            <button
+              onClick={() => handleModeChange('object')}
               className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
-                displayMode === 'object' ? 'text-black' : 'text-white'
+                displayMode === 'object' || displayMode === 'module' ? 'text-black' : 'text-white'
               } ${
                 mode === 'object' ? 'opacity-100' : 'opacity-60'
               }`}
             >
               OBJECT
-            </div>
+            </button>
+            <button
+              onClick={() => handleModeChange('module')}
+              className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
+                displayMode === 'object' || displayMode === 'module' ? 'text-black' : 'text-white'
+              } ${
+                mode === 'module' ? 'opacity-100' : 'opacity-60'
+              }`}
+            >
+              MODULE
+            </button>
           </div>
-        </button>
+        </div>
       </div>
       
       <>
@@ -87,6 +97,13 @@ export default function Home() {
           }`}
         >
           <Scene2 isActive={displayMode === 'object' && !isTransitioning} />
+        </div>
+        <div
+          className={`absolute inset-0 transition-opacity duration-300 ${
+            displayMode === 'module' && !isTransitioning ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+          }`}
+        >
+          <Scene3 isActive={displayMode === 'module' && !isTransitioning} />
         </div>
       </>
     </>
