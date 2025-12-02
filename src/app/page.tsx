@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Scene from '@/components/Scene'
-import Scene2 from '@/components/test/Scene'
+import Scene from '@/components/light/Scene'
+import Scene2 from '@/components/color/Scene'
 
 export default function Home() {
   const [mode, setMode] = useState<'room' | 'object'>('room')

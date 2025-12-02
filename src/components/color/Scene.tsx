@@ -70,10 +70,10 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
   // 반응형 화면 크기, 스케일, 위치
   const { scale, position } = useScreenSize();
   
-  const [textureUrl, setTextureUrl] = useState(`${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`);
+  const [textureUrl, setTextureUrl] = useState(`${BASE_PATH}/gltf/color/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`);
   
   return (
-    <div className="w-screen h-screen relative">
+    <div className="w-screen h-[100dvh] relative">
       <Canvas
         frameloop={isActive ? 'always' : 'never'}
         shadows
@@ -146,12 +146,12 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-10">
         {/* 초록색 버튼 */}
         <button
-          onClick={() => setTextureUrl(`${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`)}
+          onClick={() => setTextureUrl(`${BASE_PATH}/gltf/color/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`)}
           className={`
             w-8 h-8 rounded-full
             transition-all duration-300
             border-2 hover:scale-110
-            ${textureUrl === `${BASE_PATH}/test/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`
+            ${textureUrl === `${BASE_PATH}/gltf/color/textures/Cylinder_Bake1_CyclesBake_COMBINED.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
             }
@@ -162,12 +162,12 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
 
         {/* 검정색 버튼 */}
         <button
-          onClick={() => setTextureUrl(`${BASE_PATH}/test/textures/black.webp`)}
+          onClick={() => setTextureUrl(`${BASE_PATH}/gltf/color/textures/black.webp`)}
           className={`
             w-8 h-8 rounded-full
             transition-all duration-300
             border-2 hover:scale-110
-            ${textureUrl === `${BASE_PATH}/test/textures/black.webp`
+            ${textureUrl === `${BASE_PATH}/gltf/color/textures/black.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
             }
@@ -178,12 +178,12 @@ export default function Scene2({ isActive }: { isActive: boolean }) {
 
         {/* 흰색 버튼 */}
         <button
-          onClick={() => setTextureUrl(`${BASE_PATH}/test/textures/white.webp`)}
+          onClick={() => setTextureUrl(`${BASE_PATH}/gltf/color/textures/white.webp`)}
           className={`
             w-8 h-8 rounded-full
             transition-all duration-300
             border-2 hover:scale-110
-            ${textureUrl === `${BASE_PATH}/test/textures/white.webp`
+            ${textureUrl === `${BASE_PATH}/gltf/color/textures/white.webp`
               ? 'border-white scale-110' 
               : 'border-gray-400/50'
             }

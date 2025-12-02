@@ -9,7 +9,6 @@ import { Reflector } from "./Reflector";
 import * as THREE from "three/webgpu";
 import { Sun, Moon } from "lucide-react";
 import { useScreenSize } from "@/config/useScreenSize";
-// import { useControls } from "leva";
 
 // 카메라 설정 상수
 const CAMERA_CONFIG = {
@@ -116,12 +115,6 @@ export default function Scene({
     uNightMixRef.current = uNightMix;
   }, [uNightMix]);
 
-  // // 통합 컨트롤: nightMix 값으로 다른 값들 자동 계산
-  // const { uNightMix, isPerspective } = useControls('Scene Settings', {
-  //   uNightMix: { value: 0, min: 0, max: 1, step: 0.01, label: 'Night Mix' },
-  //   isPerspective: { value: false, label: 'Perspective Camera' }
-  // })
-
   // nightMix 애니메이션
   useEffect(() => {
     const targetValue = isNightMode ? 1 : 0;
@@ -165,7 +158,7 @@ export default function Scene({
   }, [uNightMix])
 
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-[100dvh]">
       <Canvas 
         frameloop={isActive ? 'always' : 'never'}
         orthographic={!isPerspective}

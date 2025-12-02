@@ -6,7 +6,7 @@ import React, { useMemo } from 'react'
 import { BASE_PATH } from '@/config/basePath'
 
 export function ReflectTest() {
-  const { scene: floorScene } = useGLTF(`${BASE_PATH}/gltf/texture/floormesh.glb`)
+  const { scene: floorScene } = useGLTF(`${BASE_PATH}/gltf/light/texture/floormesh.glb`)
   
   // const { reflectionIntensity } = useControls('Reflection', {
   //   reflectionIntensity: { value: 0.5, min: 0, max: 1, step: 0.01, label: 'Intensity' },
@@ -62,5 +62,5 @@ export function ReflectTest() {
   )
 }
 
-useGLTF.preload(`${BASE_PATH}/gltf/texture/floormesh.glb`)
+useGLTF.preload(`${BASE_PATH}/gltf/light/texture/floormesh.glb`)
 
