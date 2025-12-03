@@ -25,12 +25,24 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
     setIsDraggingAny(isDragging);
   };
 
+  // 공간이 있는지 체크
+  const hasAvailableSpace = () => {
+    const candidates = [-0.7, -0.1, -0.9, 0.1, -0.6, -0.2, -0.8, 0.0, -1.0, -0.3, -0.5, 0.05];
+    for (const candidate of candidates) {
+      const hasCollision = holes.some(h => Math.abs(candidate - h.x) < COLLISION_DISTANCE);
+      if (!hasCollision) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const addHole = () => {
     if (holes.length >= 5) return;
 
     // 충돌하지 않는 위치 찾기 (모델 중심 -0.4 기준)
     const candidates = [-0.7, -0.1, -0.9, 0.1, -0.6, -0.2, -0.8, 0.0, -1.0, -0.3, -0.5, 0.05];
-    let newX = -0.4;
+    let newX: number | null = null;
 
     for (const candidate of candidates) {
       const hasCollision = holes.some(h => Math.abs(candidate - h.x) < COLLISION_DISTANCE);
@@ -40,8 +52,19 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
       }
     }
 
+    // 자리가 없으면 추가하지 않음
+    if (newX === null) {
+      console.warn('No available space to add new hole');
+      return;
+    }
+
     setHoles(prev => [...prev, { id: nextId, x: newX }]);
     setNextId(prev => prev + 1);
+  };
+
+  const removeHole = () => {
+    if (holes.length <= 1) return; // 최소 1개는 유지
+    setHoles(prev => prev.slice(0, -1)); // 마지막 hole 제거
   };
   
   return (
@@ -162,24 +185,49 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
           Short
         </button>
 
-        {/* Add 버튼 */}
-        <button
-          onClick={addHole}
-          disabled={holes.length >= 5}
-          className={`
-            px-6 py-2 rounded-full
-            transition-all duration-300
-            border-2 hover:scale-105
-            font-medium text-sm
-            ${holes.length >= 5
-              ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed' 
-              : 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
-            }
-          `}
-          aria-label="Add hole"
-        >
-          + Add
-        </button>
+        {/* Hole 개수 조절 버튼 */}
+        <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-gray-300">
+          {/* - 버튼 */}
+          <button
+            onClick={removeHole}
+            disabled={holes.length <= 1}
+            className={`
+              w-8 h-8 rounded-full flex items-center justify-center
+              transition-all duration-300
+              font-bold text-lg
+              ${holes.length <= 1
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                : 'bg-gray-700 text-white hover:bg-gray-800 hover:scale-110'
+              }
+            `}
+            aria-label="Remove hole"
+          >
+            −
+          </button>
+
+          {/* 숫자 표시 */}
+          <span className="text-gray-800 font-semibold text-lg min-w-[2ch] text-center">
+            {holes.length}
+          </span>
+
+          {/* + 버튼 */}
+          <button
+            onClick={addHole}
+            disabled={holes.length >= 5 || !hasAvailableSpace()}
+            className={`
+              w-8 h-8 rounded-full flex items-center justify-center
+              transition-all duration-300
+              font-bold text-lg
+              ${holes.length >= 5 || !hasAvailableSpace()
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                : 'bg-blue-500 text-white hover:bg-blue-600 hover:scale-110'
+              }
+            `}
+            aria-label="Add hole"
+          >
+            +
+          </button>
+        </div>
       </div>
     </div>
   );
