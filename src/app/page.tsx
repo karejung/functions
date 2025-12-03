@@ -48,9 +48,7 @@ export default function Home() {
             <button
               onClick={() => handleModeChange('room')}
               className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
-                displayMode === 'object' || displayMode === 'module' ? 'text-black' : 'text-white'
-              } ${
-                mode === 'room' ? 'opacity-100' : 'opacity-60'
+                mode === 'room' ? 'text-black opacity-100' : 'text-white opacity-60'
               }`}
             >
               ROOM
@@ -58,9 +56,7 @@ export default function Home() {
             <button
               onClick={() => handleModeChange('object')}
               className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
-                displayMode === 'object' || displayMode === 'module' ? 'text-black' : 'text-white'
-              } ${
-                mode === 'object' ? 'opacity-100' : 'opacity-60'
+                mode === 'object' ? 'text-black opacity-100' : 'text-white opacity-60'
               }`}
             >
               OBJECT
@@ -68,9 +64,7 @@ export default function Home() {
             <button
               onClick={() => handleModeChange('module')}
               className={`flex-1 flex items-center justify-center font-medium transition-all duration-300 ${
-                displayMode === 'object' || displayMode === 'module' ? 'text-black' : 'text-white'
-              } ${
-                mode === 'module' ? 'opacity-100' : 'opacity-60'
+                mode === 'module' ? 'text-black opacity-100' : 'text-white opacity-60'
               }`}
             >
               MODULE
