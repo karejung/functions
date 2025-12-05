@@ -18,15 +18,9 @@ interface PositionConfig {
   module: [number, number, number];  // module/Scene.tsx용 [x, y, z]
 }
 
-interface CameraConfig {
-  module: {
-    zoom: number;  // module/Scene.tsx용 카메라 zoom
-  };
-}
-
 /**
  * 브라우저 화면 너비를 추적하고 반응형 스케일 및 위치 값을 반환하는 커스텀 훅
- * @returns {ScreenSize & { scale: ScaleConfig, position: PositionConfig, camera: CameraConfig }} 화면 너비, 스케일, 위치, 카메라 설정
+ * @returns {ScreenSize & { scale: ScaleConfig, position: PositionConfig }} 화면 너비, 스케일, 위치
  */
 export function useScreenSize() {
   const [screenSize, setScreenSize] = useState<ScreenSize>({
@@ -54,7 +48,7 @@ export function useScreenSize() {
   }, []);
 
   // 화면 너비에 따른 스케일 및 위치 값 계산
-  const calculateResponsiveValues = (): { scale: ScaleConfig; position: PositionConfig; camera: CameraConfig } => {
+  const calculateResponsiveValues = (): { scale: ScaleConfig; position: PositionConfig } => {
     const { width } = screenSize;
 
     let mainScale = 1;     // Scene.tsx의 기본값
@@ -63,7 +57,6 @@ export function useScreenSize() {
     let mainPosY = 0;      // Scene.tsx Y 위치
     let testPosY = -2;     // test/Scene.tsx Y 위치 (기본값)
     let modulePosY = 0;    // module/Scene.tsx Y 위치 (기본값)
-    let moduleZoom = 200;  // module/Scene.tsx 카메라 zoom (기본값)
 
     // 브레이크포인트에 따른 스케일 및 위치 조정
     // 모바일 (< 640px)
@@ -74,7 +67,6 @@ export function useScreenSize() {
       mainPosY = 0.6;    // 작아진만큼 위로 올림
       testPosY = -1.2;   // 작아진만큼 위로 올림
       modulePosY = 0;    // module은 위치 조정 안함 (OrbitControls 사용 중)
-      moduleZoom = 180;  // 줌 아웃 (120 * 1.5)
     } 
     // 태블릿 (640px ~ 1024px)
     else if (width < 1024) {
@@ -84,7 +76,6 @@ export function useScreenSize() {
       mainPosY = 0.3;    // 작아진만큼 위로 올림
       testPosY = -1.6;   // 작아진만큼 위로 올림
       modulePosY = 0;    // module은 위치 조정 안함
-      moduleZoom = 240;  // 중간 줌 (160 * 1.5)
     }
     // 데스크톱 (>= 1024px)
     else {
@@ -94,7 +85,6 @@ export function useScreenSize() {
       mainPosY = 0;      // 기본 위치
       testPosY = -2;     // 기본 위치
       modulePosY = 0;    // 기본 위치
-      moduleZoom = 300;  // 기본 줌 (200 * 1.5)
     }
 
     return {
@@ -108,21 +98,15 @@ export function useScreenSize() {
         test: [0, testPosY, 0],
         module: [0, modulePosY, 0],
       },
-      camera: {
-        module: {
-          zoom: moduleZoom,
-        }
-      }
     };
   };
 
-  const { scale, position, camera } = calculateResponsiveValues();
+  const { scale, position } = calculateResponsiveValues();
 
   return {
     width: screenSize.width,
     scale,
     position,
-    camera,
   };
 }
 

@@ -121,8 +121,8 @@ function AnimatedModels({
 }
 
 export default function Scene3({ isActive }: { isActive: boolean }) {
-  // 반응형 화면 크기, 스케일, 위치, 카메라
-  const { scale, position, camera } = useScreenSize();
+  // 반응형 화면 크기, 스케일, 위치
+  const { scale, position } = useScreenSize();
   
   const [selectedModel, setSelectedModel] = useState<ModelType>('L');
   const [holes, setHoles] = useState<Hole[]>([{ id: 0, x: -0.4 }]);  // 모델 중심과 맞춤
@@ -190,7 +190,7 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
         orthographic
         camera={{
           position: [-2, 2, -2],
-          zoom: camera.module.zoom,
+          zoom: 180,
           near: 1,
           far: 1000
         }}

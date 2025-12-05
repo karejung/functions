@@ -79,8 +79,8 @@
 	"images":[
 		{
 			"mimeType":"image/webp",
-			"name":"retopoBed_Baked_bakeL_CyclesBake_COMBINED",
-			"uri":"texture/retopoBed_Baked_bakeL_CyclesBake_COMBINED.webp"
+			"name":"retopoBed_Baked",
+			"uri":"texture/retopoBed_Baked.webp"
 		}
 	],
 	"accessors":[
