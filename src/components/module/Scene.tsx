@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useState, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import { DraggableHole, Hole } from "./DraggableHole";
@@ -10,6 +10,28 @@ import * as THREE from "three";
 type ModelType = 'S' | 'L';
 
 const COLLISION_DISTANCE = 0.24; // HOLE_RADIUS * 2
+
+// Z 위치 애니메이션을 위한 래퍼 컴포넌트
+function AnimatedGroup({ targetZ, children }: { targetZ: number; children: React.ReactNode }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const currentZRef = useRef(targetZ);
+
+  useFrame(() => {
+    if (groupRef.current) {
+      // lerp로 부드럽게 Z 위치 변경 (0.1 = 보간 속도)
+      currentZRef.current += (targetZ - currentZRef.current) * 0.1;
+      
+      // 거의 목표에 도달하면 정확한 값으로 설정
+      if (Math.abs(targetZ - currentZRef.current) < 0.001) {
+        currentZRef.current = targetZ;
+      }
+      
+      groupRef.current.position.z = currentZRef.current;
+    }
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
 
 export default function Scene3({ isActive }: { isActive: boolean }) {
   const [selectedModel, setSelectedModel] = useState<ModelType>('L');
@@ -106,34 +128,36 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
         
         <Suspense fallback={null}>
           <Environment preset="city" />
-          {/* 선택된 모델만 표시 */}
-          {selectedModel === 'L' && (
-            <Model modelType="L" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
-          )}
-          {selectedModel === 'S' && (
-            <Model modelType="S" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
-          )}
-          
-          {/* 드래그 가능한 Hole 모델들 */}
-          {holes.map(hole => (
-            <DraggableHole
-              key={hole.id}
-              hole={hole}
-              allHoles={holes}
-              onUpdatePosition={updateHolePosition}
-              onDragStateChange={handleDragStateChange}
-            />
-          ))}
+          <AnimatedGroup targetZ={selectedModel === 'L' ? 0.1 : -0.1}>
+            {/* 선택된 모델만 표시 */}
+            {selectedModel === 'L' && (
+              <Model modelType="L" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
+            )}
+            {selectedModel === 'S' && (
+              <Model modelType="S" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
+            )}
             
-          {/* 바닥 plane */}
-          <mesh 
-            rotation={[-Math.PI / 2, 0, 0]} 
-            position={[0, 0, 0]} 
-            receiveShadow
-          >
-            <planeGeometry args={[100, 100]} />
-            <shadowMaterial transparent opacity={0.25} />
-          </mesh>
+            {/* 드래그 가능한 Hole 모델들 */}
+            {holes.map(hole => (
+              <DraggableHole
+                key={hole.id}
+                hole={hole}
+                allHoles={holes}
+                onUpdatePosition={updateHolePosition}
+                onDragStateChange={handleDragStateChange}
+              />
+            ))}
+              
+            {/* 바닥 plane */}
+            <mesh 
+              rotation={[-Math.PI / 2, 0, 0]} 
+              position={[0, 0, 0]} 
+              receiveShadow
+            >
+              <planeGeometry args={[100, 100]} />
+              <shadowMaterial transparent opacity={0.25} />
+            </mesh>
+          </AnimatedGroup>
         </Suspense>
 
         <OrbitControls 
