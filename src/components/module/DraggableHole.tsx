@@ -87,6 +87,9 @@ export function DraggableHole({ hole, allHoles, onUpdatePosition, onDragStateCha
           } else {
             onUpdatePosition(hole.id, maxX);
           }
+        } else {
+          // 오른쪽에 hole이 없으면 경계(X_MAX)까지 이동 가능
+          onUpdatePosition(hole.id, newX);
         }
       } else {
         // 왼쪽으로 이동 중 - 가장 가까운 왼쪽 hole 찾기
@@ -99,6 +102,9 @@ export function DraggableHole({ hole, allHoles, onUpdatePosition, onDragStateCha
           } else {
             onUpdatePosition(hole.id, minX);
           }
+        } else {
+          // 왼쪽에 hole이 없으면 경계(X_MIN)까지 이동 가능
+          onUpdatePosition(hole.id, newX);
         }
       }
     }

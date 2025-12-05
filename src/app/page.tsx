@@ -34,8 +34,8 @@ export default function Home() {
 
   return (
     <>
-      <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50">
-        <div className="relative w-48 h-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden">
+      <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 mix-blend-difference">
+        <div className="relative w-54 h-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden">
           {/* 슬라이딩 배경 */}
           <div
             className={`absolute top-0 bottom-0 w-1/3 bg-white/30 transition-all duration-300 rounded-lg ${
@@ -51,7 +51,7 @@ export default function Home() {
                 mode === 'room' ? 'text-black opacity-100' : 'text-white opacity-60'
               }`}
             >
-              ROOM
+              LIGHT
             </button>
             <button
               onClick={() => handleModeChange('object')}
@@ -59,7 +59,7 @@ export default function Home() {
                 mode === 'object' ? 'text-black opacity-100' : 'text-white opacity-60'
               }`}
             >
-              OBJECT
+              COLOR
             </button>
             <button
               onClick={() => handleModeChange('module')}

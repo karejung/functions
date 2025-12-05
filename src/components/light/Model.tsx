@@ -9,7 +9,7 @@ type ModelProps = React.JSX.IntrinsicElements['group'] & {
 }
 
 export function Model({ nightMix, ...props }: ModelProps) {
-  const { scene } = useGLTF(`${BASE_PATH}/gltf/light/test.gltf`)
+  const { scene } = useGLTF(`${BASE_PATH}/gltf/light/model.gltf`)
   
   // 2개의 Baked 텍스처 로드 (Day & Night)
   const [bakedTexture1, bakedTexture2] = useTexture([
@@ -86,6 +86,6 @@ export function Model({ nightMix, ...props }: ModelProps) {
   return <primitive object={scene} {...props} />
 }
 
-useGLTF.preload(`${BASE_PATH}/gltf/light/test.gltf`)
+useGLTF.preload(`${BASE_PATH}/gltf/light/model.gltf`)
 useTexture.preload(`${BASE_PATH}/gltf/light/texture/retopoBed_Baked.webp`)
 useTexture.preload(`${BASE_PATH}/gltf/light/texture/retopoBed_Baked2.webp`)

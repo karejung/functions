@@ -41,8 +41,14 @@ type ModelProps = React.ComponentProps<'group'> & {
 }
 
 export function Model({ modelType, ...props }: ModelProps) {
+  // 모든 useGLTF 훅을 조건문 밖에서 먼저 호출 (Rules of Hooks 준수)
+  const sModel = useGLTF(`${BASE_PATH}/gltf/module/S.gltf`) as unknown as GLTFResultS
+  const lModel = useGLTF(`${BASE_PATH}/gltf/module/L.gltf`) as unknown as GLTFResultL
+  const holeModel = useGLTF(`${BASE_PATH}/gltf/module/Hole.gltf`) as unknown as GLTFResultHole
+
+  // modelType에 따라 적절한 모델 렌더링
   if (modelType === 'S') {
-    const { nodes, materials } = useGLTF(`${BASE_PATH}/gltf/module/S.gltf`) as unknown as GLTFResultS
+    const { nodes, materials } = sModel
     return (
       <group {...props} dispose={null}>
         <mesh
@@ -56,7 +62,7 @@ export function Model({ modelType, ...props }: ModelProps) {
   }
 
   if (modelType === 'L') {
-    const { nodes, materials } = useGLTF(`${BASE_PATH}/gltf/module/L.gltf`) as unknown as GLTFResultL
+    const { nodes, materials } = lModel
     return (
       <group {...props} dispose={null}>
         <mesh
@@ -70,7 +76,7 @@ export function Model({ modelType, ...props }: ModelProps) {
   }
 
   // Hole
-  const { nodes, materials } = useGLTF(`${BASE_PATH}/gltf/module/Hole.gltf`) as unknown as GLTFResultHole
+  const { nodes, materials } = holeModel
   return (
     <group {...props} dispose={null}>
       <mesh

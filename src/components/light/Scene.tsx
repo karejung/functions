@@ -202,8 +202,6 @@ export default function Scene({
           makeDefault 
           target={[0, 1.5, 0]}
           maxPolarAngle={Math.PI / 2} // 수평 아래로 회전 제한
-          minAzimuthAngle={-Math.PI / -2} // 좌측 90도 제한
-          maxAzimuthAngle={Math.PI / -2} // 우측 90도 제한 (총 180도)
         />
 
       </Canvas>
