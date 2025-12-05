@@ -246,45 +246,35 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
 
       {/* 모델 선택 버튼 */}
       <div className="cursor-pointer fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {/* Long 버튼 */}
-        <button
-          onClick={() => setSelectedModel('L')}
-          className={`
-            cursor-pointer
-            px-6 py-2 rounded-full
-            backdrop-blur-xl
-            border border-white/20
-            transition-all duration-300
-            font-medium text-sm
-            ${selectedModel === 'L'
-              ? 'bg-white/100 text-black' 
-              : 'bg-white/40 text-gray-400 hover:bg-white/70'
-            }
-          `}
-          aria-label="Long model"
-        >
-          Long
-        </button>
-
-        {/* Short 버튼 */}
-        <button
-          onClick={() => setSelectedModel('S')}
-          className={`
-            cursor-pointer
-            px-6 py-2 rounded-full
-            backdrop-blur-xl
-            border border-white/20
-            transition-all duration-300
-            font-medium text-sm
-            ${selectedModel === 'S'
-              ? 'bg-white/100 text-black' 
-              : 'bg-white/40 text-gray-400 hover:bg-white/70'
-            }
-          `}
-          aria-label="Short model"
-        >
-          Short
-        </button>
+        {/* Long/Short 슬라이딩 버튼 */}
+        <div className="relative inline-flex gap-2 bg-white/40 backdrop-blur-xl rounded-full p-1 border border-white/20">
+          {/* 슬라이딩 배경 */}
+          <div
+            className={`absolute top-1 bottom-1 bg-white/100 transition-all duration-300 rounded-full ${
+              selectedModel === 'L' ? 'left-1 right-[calc(50%+0.25rem)]' : 'left-[calc(50%+0.25rem)] right-1'
+            }`}
+          />
+          
+          {/* 텍스트 레이블들 */}
+          <button
+            onClick={() => setSelectedModel('L')}
+            className={`relative z-10 px-6 py-2 font-medium text-sm transition-all duration-300 ${
+              selectedModel === 'L' ? 'text-black' : 'text-gray-400'
+            }`}
+            aria-label="Long model"
+          >
+            Long
+          </button>
+          <button
+            onClick={() => setSelectedModel('S')}
+            className={`relative z-10 px-6 py-2 font-medium text-sm transition-all duration-300 ${
+              selectedModel === 'S' ? 'text-black' : 'text-gray-400'
+            }`}
+            aria-label="Short model"
+          >
+            Short
+          </button>
+        </div>
 
         {/* Hole 개수 조절 버튼 */}
         <div className="flex items-center gap-2 bg-white backdrop-blur-xl rounded-full px-1 py-1 border border-white/20">
