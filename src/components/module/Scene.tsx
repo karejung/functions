@@ -1,27 +1,83 @@
 "use client";
 
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { Model } from "./Model";
 import { DraggableHole, Hole } from "./DraggableHole";
 import * as THREE from "three";
+import { useScreenSize } from "@/config/useScreenSize";
 
 type ModelType = 'S' | 'L';
 
 const COLLISION_DISTANCE = 0.24; // HOLE_RADIUS * 2
 
-// Z 위치 애니메이션을 위한 래퍼 컴포넌트
-function AnimatedGroup({ targetZ, children }: { targetZ: number; children: React.ReactNode }) {
+// 스케일, 위치, Z offset 애니메이션을 위한 래퍼 컴포넌트
+function AnimatedModels({
+  selectedModel,
+  holes,
+  allHoles,
+  updateHolePosition,
+  handleDragStateChange,
+  targetScale,
+  targetPosition,
+  targetZ
+}: {
+  selectedModel: ModelType;
+  holes: Hole[];
+  allHoles: Hole[];
+  updateHolePosition: (id: number, x: number) => void;
+  handleDragStateChange: (isDragging: boolean) => void;
+  targetScale: number;
+  targetPosition: [number, number, number];
+  targetZ: number;
+}) {
   const groupRef = useRef<THREE.Group>(null);
+  const currentScaleRef = useRef(targetScale);
+  const currentPositionRef = useRef<THREE.Vector3>(new THREE.Vector3(...targetPosition));
   const currentZRef = useRef(targetZ);
+  const isInitializedRef = useRef(false);
+
+  // 초기화: 첫 렌더링 시 현재 스케일과 위치를 targetScale, targetPosition로 설정
+  useEffect(() => {
+    if (!isInitializedRef.current && groupRef.current) {
+      currentScaleRef.current = targetScale;
+      currentPositionRef.current.set(...targetPosition);
+      currentZRef.current = targetZ;
+      groupRef.current.scale.setScalar(targetScale);
+      groupRef.current.position.copy(currentPositionRef.current);
+      groupRef.current.position.z = targetZ;
+      isInitializedRef.current = true;
+    }
+  }, [targetScale, targetPosition, targetZ]);
 
   useFrame(() => {
-    if (groupRef.current) {
-      // lerp로 부드럽게 Z 위치 변경 (0.1 = 보간 속도)
-      currentZRef.current += (targetZ - currentZRef.current) * 0.1;
+    if (groupRef.current && isInitializedRef.current) {
+      // lerp로 부드럽게 스케일 변경 (0.1 = 보간 속도)
+      currentScaleRef.current += (targetScale - currentScaleRef.current) * 0.1;
       
       // 거의 목표에 도달하면 정확한 값으로 설정
+      if (Math.abs(targetScale - currentScaleRef.current) < 0.001) {
+        currentScaleRef.current = targetScale;
+      }
+      
+      groupRef.current.scale.setScalar(currentScaleRef.current);
+
+      // lerp로 부드럽게 위치 변경 (X, Y)
+      const targetPos = new THREE.Vector3(...targetPosition);
+      currentPositionRef.current.lerp(targetPos, 0.1);
+      
+      // 거의 목표에 도달하면 정확한 값으로 설정
+      if (currentPositionRef.current.distanceTo(targetPos) < 0.001) {
+        currentPositionRef.current.copy(targetPos);
+      }
+      
+      groupRef.current.position.x = currentPositionRef.current.x;
+      groupRef.current.position.y = currentPositionRef.current.y;
+
+      // Z lerp (selectedModel 변경 대응)
+      currentZRef.current += (targetZ - currentZRef.current) * 0.1;
+      
       if (Math.abs(targetZ - currentZRef.current) < 0.001) {
         currentZRef.current = targetZ;
       }
@@ -30,14 +86,51 @@ function AnimatedGroup({ targetZ, children }: { targetZ: number; children: React
     }
   });
 
-  return <group ref={groupRef}>{children}</group>;
+  return (
+    <group ref={groupRef}>
+      {/* 선택된 모델만 표시 */}
+      {selectedModel === 'L' && (
+        <Model modelType="L" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
+      )}
+      {selectedModel === 'S' && (
+        <Model modelType="S" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
+      )}
+      
+      {/* 드래그 가능한 Hole 모델들 */}
+      {holes.map(hole => (
+        <DraggableHole
+          key={hole.id}
+          hole={hole}
+          allHoles={allHoles}
+          onUpdatePosition={updateHolePosition}
+          onDragStateChange={handleDragStateChange}
+        />
+      ))}
+        
+      {/* 바닥 plane */}
+      <mesh 
+        rotation={[-Math.PI / 2, 0, 0]} 
+        position={[0, 0, 0]} 
+        receiveShadow
+      >
+        <planeGeometry args={[100, 100]} />
+        <shadowMaterial transparent opacity={0.25} />
+      </mesh>
+    </group>
+  );
 }
 
 export default function Scene3({ isActive }: { isActive: boolean }) {
+  // 반응형 화면 크기, 스케일, 위치, 카메라
+  const { scale, position, camera } = useScreenSize();
+  
   const [selectedModel, setSelectedModel] = useState<ModelType>('L');
   const [holes, setHoles] = useState<Hole[]>([{ id: 0, x: -0.4 }]);  // 모델 중심과 맞춤
   const [nextId, setNextId] = useState(1);
   const [isDraggingAny, setIsDraggingAny] = useState(false);
+  
+  // selectedModel에 따른 Z offset
+  const targetZ = selectedModel === 'L' ? 0.1 : -0.1;
 
   const updateHolePosition = (id: number, newX: number) => {
     setHoles(prev => prev.map(h => h.id === id ? {...h, x: newX} : h));
@@ -97,7 +190,7 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
         orthographic
         camera={{
           position: [-2, 2, -2],
-          zoom: 200,
+          zoom: camera.module.zoom,
           near: 1,
           far: 1000
         }}
@@ -128,36 +221,16 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
         
         <Suspense fallback={null}>
           <Environment preset="city" />
-          <AnimatedGroup targetZ={selectedModel === 'L' ? 0.1 : -0.1}>
-            {/* 선택된 모델만 표시 */}
-            {selectedModel === 'L' && (
-              <Model modelType="L" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
-            )}
-            {selectedModel === 'S' && (
-              <Model modelType="S" position={[-0.2, 0, 0]} rotation={[0, 0, 0]} scale={10} />
-            )}
-            
-            {/* 드래그 가능한 Hole 모델들 */}
-            {holes.map(hole => (
-              <DraggableHole
-                key={hole.id}
-                hole={hole}
-                allHoles={holes}
-                onUpdatePosition={updateHolePosition}
-                onDragStateChange={handleDragStateChange}
-              />
-            ))}
-              
-            {/* 바닥 plane */}
-            <mesh 
-              rotation={[-Math.PI / 2, 0, 0]} 
-              position={[0, 0, 0]} 
-              receiveShadow
-            >
-              <planeGeometry args={[100, 100]} />
-              <shadowMaterial transparent opacity={0.25} />
-            </mesh>
-          </AnimatedGroup>
+          <AnimatedModels
+            selectedModel={selectedModel}
+            holes={holes}
+            allHoles={holes}
+            updateHolePosition={updateHolePosition}
+            handleDragStateChange={handleDragStateChange}
+            targetScale={scale.module}
+            targetPosition={position.module}
+            targetZ={targetZ}
+          />
         </Suspense>
 
         <OrbitControls 
@@ -172,18 +245,20 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
       </Canvas>
 
       {/* 모델 선택 버튼 */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-10">
+      <div className="cursor-pointer fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {/* Long 버튼 */}
         <button
           onClick={() => setSelectedModel('L')}
           className={`
+            cursor-pointer
             px-6 py-2 rounded-full
+            backdrop-blur-xl
+            border border-white/20
             transition-all duration-300
-            border-2 hover:scale-105
             font-medium text-sm
             ${selectedModel === 'L'
-              ? 'bg-gray-800 text-white border-gray-800' 
-              : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+              ? 'bg-white/100 text-black' 
+              : 'bg-white/40 text-gray-400 hover:bg-white/70'
             }
           `}
           aria-label="Long model"
@@ -195,13 +270,15 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
         <button
           onClick={() => setSelectedModel('S')}
           className={`
+            cursor-pointer
             px-6 py-2 rounded-full
+            backdrop-blur-xl
+            border border-white/20
             transition-all duration-300
-            border-2 hover:scale-105
             font-medium text-sm
             ${selectedModel === 'S'
-              ? 'bg-gray-800 text-white border-gray-800' 
-              : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+              ? 'bg-white/100 text-black' 
+              : 'bg-white/40 text-gray-400 hover:bg-white/70'
             }
           `}
           aria-label="Short model"
@@ -210,7 +287,7 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
         </button>
 
         {/* Hole 개수 조절 버튼 */}
-        <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-gray-300">
+        <div className="flex items-center gap-2 bg-white backdrop-blur-xl rounded-full px-1 py-1 border border-white/20">
           {/* - 버튼 */}
           <button
             onClick={removeHole}
@@ -218,10 +295,10 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
             className={`
               w-8 h-8 rounded-full flex items-center justify-center
               transition-all duration-300
-              font-bold text-lg
+              font-medium text-sm
               ${holes.length <= 1
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                : 'bg-gray-700 text-white hover:bg-gray-800 hover:scale-110'
+                ? 'bg-white/20 text-gray-400 cursor-not-allowed' 
+                : 'bg-black text-white hover:scale-110'
               }
             `}
             aria-label="Remove hole"
@@ -230,7 +307,7 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
           </button>
 
           {/* 숫자 표시 */}
-          <span className="text-gray-800 font-semibold text-lg min-w-[2ch] text-center">
+          <span className="text-black font-medium text-sm min-w-[2ch] text-center">
             {holes.length}
           </span>
 
@@ -241,10 +318,10 @@ export default function Scene3({ isActive }: { isActive: boolean }) {
             className={`
               w-8 h-8 rounded-full flex items-center justify-center
               transition-all duration-300
-              font-bold text-lg
+              font-medium text-sm
               ${holes.length >= 5 || !hasAvailableSpace()
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                : 'bg-blue-500 text-white hover:bg-blue-600 hover:scale-110'
+                ? 'bg-white/20 text-gray-400 cursor-not-allowed' 
+                : 'bg-black text-white hover:scale-110'
               }
             `}
             aria-label="Add hole"
